@@ -1,0 +1,26 @@
+{
+
+  "manifest_version": 2,
+  "name": "Opz Web Extension",
+  "version": "1.0",
+
+  "description": "Opz.io time tracker browser extension",
+
+  "browser_action": {
+    "browser_style": false,
+    "default_icon": {
+      "19": "img/neutral.png",
+      "38": "img/neutral.png"
+    },
+    "default_title": "Opzio",
+    "default_popup": "panel/panel.html"
+  },
+
+  "icons": {
+    "48": "img/neutral.png"
+  },
+  "background": {
+    "scripts": ["main.js"]
+  }
+
+}

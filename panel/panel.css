@@ -1,0 +1,102 @@
+html, body{
+	font-family: 'Roboto', sans-serif !important;
+	font-weight: 400;
+	font-size: 14px;
+	color: #444;
+	text-rendering: optimizeLegibility;
+}
+
+form.form-login > input:focus{
+	text-decoration: none !important;
+	outline: none !important;
+}
+
+html, body{
+	width: 400px;
+	height: 600px;
+	overflow: hidden;
+}
+
+
+.panel-main{
+
+}
+
+
+
+
+
+/*############################# PANEL LOGIN ######################*/
+
+.panel-login{
+	flex: 1 100%;
+	height: 100%;
+	width: 100%;
+}
+
+.panel-login header{
+	display: flex;
+	flex-flow: row;
+	height: 200px;
+	padding: 7% 10%;
+	vertical-align: middle;
+}
+
+.panel-login aside{
+	display: flex;
+	flex-flow: row;
+	height: 300px;
+	padding: 5% 10%;
+	vertical-align: middle;
+	background-color: #f9f9f9;
+	border-top: 1px solid #ddd;
+}
+
+.panel-login footer{
+	display: flex;
+	flex-flow: row;
+	height: 100px;
+	padding: 10%;
+	vertical-align: middle;
+	background-color: #f1f1f1;
+	border-top: 1px solid #ccc;
+}.panel-login footer .footer-link{
+	width: 100%;
+	text-align: center;
+}
+
+.panel-login .login-header{
+	flex: 1 100%;
+	height: 100%;
+	background-image: url("../img/neutral.png");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+.panel-login > form.form-login{
+	display: flex;
+	flex-flow: row;
+}form.form-login > .login-message{
+	width: 100%;
+	margin: 0px 5px;
+	padding: 10px 0px;
+	box-sizing: border-box;
+}form.form-login > input{
+	width: 100%;
+	margin: 5px;
+	padding: 15px;
+	border-radius: 4px;
+	border: 0;
+}form.form-login > input[type="username"], form.form-login > input[type="password"]{
+	background-color: #fff;
+	border: 1px solid #ddd;
+	font-size: 14px;
+	font-weight: 300;
+}form.form-login > input[type="submit"]{
+	background-color:  #61E4DF;
+	cursor: pointer;
+	font-size: 16px;
+	color: #fff;
+	outline: none;
+}
