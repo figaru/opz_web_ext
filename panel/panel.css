@@ -31,62 +31,94 @@ html, body{
 }
 
 .panel-main header{
-	display: flex;
-  	flex-flow: row wrap;
   	height: 200px;
+
+  	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
 }header .logo{
-	width: 40%;
+	width: 100px;
+	margin: 25px;
 	box-sizing: border-box;
 	list-style: none;
 	overflow: hidden;
 	display: flex;
 	flex-direction: row;
 	align-content: flex-start;
-	}.logo img{
-		width: 100%;
-		padding: 20%;
-		box-sizing: border-box;
-		height: auto;
+	background: url("../img/neutral.png");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
 	}
 header .details{
-	width: 60%;
-	margin: 0;
-	padding: 0;
+	flex: 1;
 	box-sizing: border-box;
 	overflow: hidden;
+
+	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
 	display: flex;
-	flex-direction: row;
-	vertical-align: middle;
-}.details .company{
-	width: 200px;
-  	height: 35px;
-	display: flex;
+
+	-webkit-flex-flow: row wrap;
 	flex-flow: row wrap;
+
+	-webkit-align-content: center; 
+	align-content: center; 
+}.details .company{
+	width: 100%;
+	font-size: 26px;
 	}.details .email{
-		width: 200px;
-  		height: 35px;
-		display: flex;
-		flex-flow: row wrap;
+		width: 100%;
+		font-size: 16px;
 	}
 
 .panel-main aside{
-	display: flex;
-	flex-flow: row;
 	height: 200px;
 	padding: 5% 10%;
-	vertical-align: middle;
+
 	background-color: #f9f9f9;
 	border-top: 1px solid #ddd;
+
+	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
 }
 
 .panel-main footer{
-	display: flex;
-	flex-flow: row;
 	height: 200px;
 	padding: 10%;
-	vertical-align: middle;
+	
 	background-color: #f1f1f1;
 	border-top: 1px solid #ccc;
+
+	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
 }
 
 
@@ -100,31 +132,59 @@ header .details{
 }
 
 .panel-login header{
-	display: flex;
-	flex-flow: row;
 	height: 200px;
 	padding: 7% 10%;
+
+	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
+
 	vertical-align: middle;
 }
 
 .panel-login aside{
-	display: flex;
-	flex-flow: row;
 	height: 300px;
 	padding: 5% 10%;
 	vertical-align: middle;
 	background-color: #f9f9f9;
 	border-top: 1px solid #ddd;
+
+	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
 }
 
 .panel-login footer{
-	display: flex;
-	flex-flow: row;
 	height: 100px;
 	padding: 10%;
 	vertical-align: middle;
 	background-color: #f1f1f1;
 	border-top: 1px solid #ccc;
+
+	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
 }.panel-login footer .footer-link{
 	width: 100%;
 	text-align: center;
@@ -165,3 +225,66 @@ header .details{
 	color: #fff;
 	outline: none;
 }
+
+/*############################# INPUT TRACK SWITCH ##########################*/
+
+.switch {
+  width: 100%;
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  box-sizing: border-box;
+  position: relative;
+  bottom: 0px;
+}
+.switch input.checkbox{
+  display: block;
+  opacity: 0;
+  visibility: hidden;
+  width: 100px;
+}
+.switch label {
+  width: 60px;
+  height: 30px;
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  background: #BDBDBD;
+  border-radius: 30px;
+  
+  transition: background-color 0.4s;
+  -moz-transition: background-color 0.4s;
+  -webkit-transition: background-color 0.4s;
+}
+.switch label:after {
+  left: 0;
+  width: 20px;
+  height: 20px;
+  margin: 5px;
+  content: '';
+  position: absolute;
+  background: #FFF;
+  border-radius: 10px;
+}
+.switch input:checked + label {
+  background: rgb(39, 173, 95);
+}
+.switch input:checked + label:after {
+  left: auto;
+  right: 0;
+}
+
+.switch p {
+  color: rgb(189, 189, 189);
+  display: none;
+  font-size: 14px;
+  font-family: "Roboto", sans-serif !important;
+}
+.switch input:checked ~ p:nth-of-type(1) {
+  color: rgb(39, 173, 95);
+  display: block;
+}
+.switch input:not(:checked) ~ p:nth-of-type(2) {
+  display: block;
+}
+
