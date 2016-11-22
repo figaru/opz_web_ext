@@ -18,11 +18,76 @@ html, body{
 }
 
 
-.panel-main{
-
+.panel-main {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  flex-flow: row wrap;
 }
 
+.panel-main header, .panel-main aside, .panel-main footer {
+  flex: 1 100%;
+}
 
+.panel-main header{
+	display: flex;
+  	flex-flow: row wrap;
+  	height: 200px;
+}header .logo{
+	width: 40%;
+	box-sizing: border-box;
+	list-style: none;
+	overflow: hidden;
+	display: flex;
+	flex-direction: row;
+	align-content: flex-start;
+	}.logo img{
+		width: 100%;
+		padding: 20%;
+		box-sizing: border-box;
+		height: auto;
+	}
+header .details{
+	width: 60%;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	overflow: hidden;
+	display: flex;
+	flex-direction: row;
+	vertical-align: middle;
+}.details .company{
+	width: 200px;
+  	height: 35px;
+	display: flex;
+	flex-flow: row wrap;
+	}.details .email{
+		width: 200px;
+  		height: 35px;
+		display: flex;
+		flex-flow: row wrap;
+	}
+
+.panel-main aside{
+	display: flex;
+	flex-flow: row;
+	height: 200px;
+	padding: 5% 10%;
+	vertical-align: middle;
+	background-color: #f9f9f9;
+	border-top: 1px solid #ddd;
+}
+
+.panel-main footer{
+	display: flex;
+	flex-flow: row;
+	height: 200px;
+	padding: 10%;
+	vertical-align: middle;
+	background-color: #f1f1f1;
+	border-top: 1px solid #ccc;
+}
 
 
 
