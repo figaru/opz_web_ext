@@ -8,10 +8,11 @@ function handleError(error) {
 
 function notifyBackgroundPage(e) {
 	console.log("clicked");
-  var sending = chrome.runtime.sendMessage({
-    greeting: "Greeting from the content script"
-  });
-  sending.then(handleResponse, handleError);  
+	chrome.runtime.sendMessage({
+		greeting: "Greeting from the content script"
+	}, function(response) {
+		console.log(response.response);
+	});
 }
 
 
