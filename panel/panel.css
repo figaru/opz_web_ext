@@ -1,7 +1,7 @@
 html, body{
 	font-family: 'Roboto', sans-serif !important;
-	font-weight: 400;
-	font-size: 14px;
+	font-weight: 300;
+	font-size: 16px;
 	color: #444;
 	text-rendering: optimizeLegibility;
 }
@@ -59,6 +59,8 @@ html, body{
 	}
 header .details{
 	flex: 1;
+	padding: 10%;
+
 	box-sizing: border-box;
 	overflow: hidden;
 
@@ -77,10 +79,13 @@ header .details{
 	align-content: center; 
 }.details .company{
 	width: 100%;
-	font-size: 26px;
+	font-size: 32px;
+	font-weight: 300;
 	}.details .email{
 		width: 100%;
 		font-size: 16px;
+		font-weight: 300;
+		color: #BDBDBD;
 	}
 
 .panel-main aside{
@@ -243,6 +248,12 @@ header .details{
   visibility: hidden;
   width: 100px;
 }
+
+footer section.switch input[type=checkbox].hidden{
+   display:none;
+   opacity: 0;
+}
+
 .switch label {
   width: 60px;
   height: 30px;
@@ -277,8 +288,8 @@ header .details{
 .switch p {
   color: rgb(189, 189, 189);
   display: none;
-  font-size: 14px;
-  font-family: "Roboto", sans-serif !important;
+  font-size: 16px;
+  font-weight: 300;
 }
 .switch input:checked ~ p:nth-of-type(1) {
   color: rgb(39, 173, 95);

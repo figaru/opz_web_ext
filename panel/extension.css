@@ -208,7 +208,7 @@ input[type="radio"]:checked:hover:active + label::before,
 }
 
 /* Checkboxes */
-.checkboxItem {
+/*.checkboxItem {
   margin-bottom: 6px;
   text-align: left;
 }
@@ -277,7 +277,7 @@ input[type="checkbox"]:checked:hover:active + label::before,
 
 .checkboxItem.focused input[type="checkbox"]:checked + label::before {
   border-color: #fff;
-}
+}*/
 
 /* Expander Button */
 button.expander {

@@ -16,11 +16,32 @@
     "default_popup": "panel/panel.html"
   },
 
+  "options_ui": {
+    "open_in_tab": true,
+    "page": "options/options.html"
+  },
+
   "icons": {
     "48": "img/neutral.png"
   },
   "background": {
     "scripts": ["main.js"]
-  }
+  },
+
+  "permissions":[
+    "activeTab",
+    "alarms",
+    "bookmarks",
+    "contextMenus",
+    "cookies",
+    "history",
+    "idle",
+    "notifications",
+    "storage",
+    "tabs",
+    "webNavigation",
+    "webRequest",
+    "webRequestBlocking"
+  ]
 
 }
