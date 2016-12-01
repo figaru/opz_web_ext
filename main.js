@@ -17,7 +17,7 @@ let TRACKING = false;
 let sync = {};
 let user = {};
 
-chrome.storage.local.remove(["sync", "user"]);
+//chrome.storage.local.remove(["sync", "user"]);
 
 //##################################### RUNTIME MESSAGES ####################################	
 var openCount = 0;
@@ -28,7 +28,7 @@ chrome.runtime.onConnect.addListener(function (port) {
 
         if(CONNECTION_ERROR){
         	console.log("Connection error");
-        	port.postMessage({action: "error", msg: "Error! Connection to server refused."});
+        	port.postMessage({action: "error", msg: AUTH_STATE['message'] });
         	return;
         }
 
@@ -53,7 +53,7 @@ chrome.runtime.onConnect.addListener(function (port) {
 	        	if(!LOGIN_REQUIRED)
         			port.postMessage({action: "main"});
 	        }).catch(error => {
-
+		        port.postMessage({action: "error", msg: AUTH_STATE['message'] });
 	        });
       	}else if(request.action === "data"){
 
@@ -82,6 +82,11 @@ chrome.runtime.onConnect.addListener(function (port) {
 
       	}else if(request.action === "tracking"){
       		TRACKING = request.status;
+      	}else if(request.action === "disconnect"){
+      		LOGIN_REQUIRED = true;
+      		SYNC_REQUIRED = true;
+      		chrome.storage.local.remove(["sync"]);
+      		port.postMessage({action: "login"});
       	}
 
       });
@@ -150,7 +155,6 @@ function init(){
 						}
 					});			
 			}).catch(error => {
-				CONNECTION_ERROR = true;
 				console.log(error);
 			});
 
@@ -298,7 +302,10 @@ function loginRequest(data){
 					console.log(response.status);
 					console.log(response);
 				}
-            } else {
+            }else if(xhr.status === 401) {
+            	AUTH_STATE['error'] = true;
+            	AUTH_STATE['message'] = "The credentials enetered are not valid.";
+
                 // It's a failure, so let's reject the promise
                 reject(xhr.response);
             }
@@ -306,6 +313,9 @@ function loginRequest(data){
         }
 
         xhr.onerror = () => {
+        	CONNECTION_ERROR = true;
+        	AUTH_STATE['error'] = true;
+            AUTH_STATE['message'] = "Error! Unable to connect to server.";
             // It's a failure, so let's reject the promise
             reject("Unable to load RSS");
         };

@@ -186,6 +186,9 @@ header .details{
 
 	-webkit-flex-flow: row wrap;
 	flex-flow: row wrap;
+
+	-webkit-align-content: center;
+	align-content: center;
 }
 
 .panel-login footer{
@@ -211,7 +214,7 @@ header .details{
 	-webkit-flex-flow: row wrap;
 	flex-flow: row wrap;
 
-	-webkit-align-content: c
+	-webkit-align-content: center;
 }.footer-link .link{
 	width: 100%;
 	text-align: center;
@@ -230,10 +233,21 @@ header .details{
 	display: flex;
 	flex-flow: row;
 }form.form-login > .login-message{
+	display: block;
 	width: 100%;
 	margin: 0px 5px;
 	padding: 10px 0px;
 	box-sizing: border-box;
+}form.form-login > .login-error{
+	display: none;
+	width: 100%;
+	margin: 5px 5px;
+	padding: 10px;
+	border-radius: 4px;
+	box-sizing: border-box;
+	background-color: #f44336;
+	font-size: 16px;
+	color: #fff;
 }form.form-login > input{
 	width: 100%;
 	margin: 5px;
@@ -251,6 +265,13 @@ header .details{
 	font-size: 16px;
 	color: #fff;
 	outline: none;
+}
+
+
+form.form-login.error > .login-error{
+	display: block;
+}form.form-login.error > .login-message{
+	display: none;
 }
 
 /*############################# INPUT TRACK SWITCH ##########################*/

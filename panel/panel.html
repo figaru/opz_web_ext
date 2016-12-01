@@ -9,7 +9,7 @@
 		<script type="text/javascript" src="jquery.min.js"></script>
 		
 	</head>
-	<body id="body" class="action-login">
+	<body id="body" class="action-main">
 		<section class="panel-main">
 			<header>
 				<!-- <div class="logo">
@@ -21,8 +21,9 @@
 				</div>
 			</header>
 			<aside>
-				<!-- <button id="button">click</button>
-				<p id="text"></p> -->
+				<button id="disconnect">Sign Out</button>
+				<p id="text"></p>
+
 			</aside>
 			<footer>
 				<section class="switch">
@@ -42,6 +43,9 @@
 				<form class="form-login" id="form-login">
 					<div class="login-message" id="login-message">
 						Fill in your credentials bellow to sign in to your opzio account.
+					</div>
+					<div class="login-error" id="login-error">
+						
 					</div>
 					<input type="username" id="form-user" placeholder="Username">
 					<input type="password" id="form-pass" placeholder="Password">

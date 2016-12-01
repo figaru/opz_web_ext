@@ -17,7 +17,9 @@ backgroundPageConnection.onMessage.addListener(function(request, sender){
 		$("#body").removeClass();
 		$("#body").addClass("action-login");
 
-		$("#login-message").html(request.msg);
+
+		$("#form-login").addClass("error");
+		$("#login-error").html(request.msg);
 	}	
 });
 
@@ -64,6 +66,11 @@ $('document').ready(function() {
         }else{
            backgroundPageConnection.postMessage({action: "tracking", status: false});
         }
+    });
+
+    $('#disconnect').on('click', function(){ // on change of state
+
+        backgroundPageConnection.postMessage({action: "disconnect"});
     });
 });
 
