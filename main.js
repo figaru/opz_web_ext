@@ -1,10 +1,17 @@
 let LOGIN_REQUIRED = true;
 let SYNC_REQUIRED = true;
+let CONNECTION_ERROR = false;
+
+const API_SYNC = "http://localhost:5000/api/v1/sync";
+const API_AUTH = "http://localhost:5000/api/v1/login";
+const API_BEAT = "https://api.opz.io/v1/logs";
+
+let TRACKING = false;
 
 let sync = {};
 let user = {};
 
-chrome.storage.local.remove(["sync", "user"]);
+//chrome.storage.local.remove(["sync", "user"]);
 
 //##################################### RUNTIME MESSAGES ####################################	
 var openCount = 0;
@@ -12,6 +19,12 @@ chrome.runtime.onConnect.addListener(function (port) {
     if (port.name == "panel") {
       if (openCount == 0) {
         console.log("Panel window opening.");
+
+        if(CONNECTION_ERROR){
+        	console.log("Connection error");
+        	port.postMessage({action: "error", msg: "Error! Connection to server refused."});
+        	return;
+        }
 
         if(LOGIN_REQUIRED){
            	port.postMessage({action: "login"});
@@ -49,7 +62,7 @@ chrome.runtime.onConnect.addListener(function (port) {
 
 								user = items.user;
 
-								port.postMessage({action: "data", data: user});
+								port.postMessage({action: "data", data: user, tracking: TRACKING});
 							}else{
 
 							}
@@ -58,9 +71,11 @@ chrome.runtime.onConnect.addListener(function (port) {
 					console.log(error);
 				});
       		}else{
-      			port.postMessage({action: "data", data: user});
+      			port.postMessage({action: "data", data: user, tracking: TRACKING});
       		}
 
+      	}else if(request.action === "tracking"){
+      		TRACKING = request.status;
       	}
 
       });
@@ -74,6 +89,34 @@ chrome.runtime.onConnect.addListener(function (port) {
     }
 });
 
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
+	console.log(request);
+
+	if(TRACKING){
+		console.log("send beat");
+		let beat = {};
+		let tabDomain = sender.tab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
+        let tabTitle = sender.tab.title;
+        let tabUrl = sender.tab.url;
+
+        beat.title = tabTitle;
+        beat.domain = tabDomain;
+        beat.url = tabUrl;
+        beat.timestamp = Math.floor((new Date).getTime() / 1000);
+
+        console.log(beat);
+
+        beatRequest(beat);
+
+	}else{
+		console.log("NOT tracking");
+	}
+
+
+	sendResponse({
+        farewell: "received"
+    });
+});
 
 //############################# INITIALIZE ADDON ############################################
 function init(){
@@ -101,6 +144,7 @@ function init(){
 						}
 					});			
 			}).catch(error => {
+				CONNECTION_ERROR = true;
 				console.log(error);
 			});
 
@@ -114,12 +158,57 @@ function init(){
 init();
 
 //##################################### REQUESTS ########################################
+function beatRequest(beat){
+    // Promises require two functions: one for success, one for failure
+    return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+
+
+        var data = {
+	        'token': user['token'],
+	        'data': {
+	            'domain': beat['domain'],
+	            'url': beat['url'],
+	            'title': beat['title'],
+	            'time': beat['timestamp']
+
+	        }
+	    };
+
+	    console.log(data);
+
+	    data = JSON.stringify(data); //Convert to actual Json
+
+        xhr.open('POST', API_BEAT, true);
+        xhr.setRequestHeader("Content-type", "application/json");
+
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                // We can resolve the promise
+                console.log(xhr.response);
+                resolve(xhr.response);
+            } else {
+                // It's a failure, so let's reject the promise
+                reject(xhr);
+            }
+        
+        }
+
+        xhr.onerror = () => {
+            // It's a failure, so let's reject the promise
+            reject("Unable to load RSS");
+        };
+
+        xhr.send(data);
+    });
+}
+
 function syncRequest(){
     // Promises require two functions: one for success, one for failure
     return new Promise(function (resolve, reject) {
         var xhr = new XMLHttpRequest();
 
-        xhr.open('GET', "http://localhost:5000/api/v1/sync");
+        xhr.open('GET', API_SYNC);
 
         xhr.setRequestHeader("Content-type", "application/json");
         xhr.setRequestHeader("X-User-Id", sync.userId);
@@ -177,7 +266,7 @@ function loginRequest(data){
         var xhr = new XMLHttpRequest();
 
 
-        xhr.open('POST', "http://localhost:5000/api/v1/login", true);
+        xhr.open('POST', API_AUTH, true);
         xhr.setRequestHeader("Content-type", "application/json");
 
         xhr.onload = () => {
@@ -262,77 +351,3 @@ chrome.storage.onChanged.addListener(function(changes, namespace) {
   			user = storageChange.newValue;
     }
 });
-
-
-
-
-
-/*
-function handleMessage(request, sender, sendResponse) {
-  console.log("Message from the content script: " +
-    request.greeting);
-  sendResponse({response: "Response from background script"});
-}
-
-chrome.runtime.onMessage.addListener(handleMessage);
-*/
-
-
-/*var connections = {};
-
-chrome.runtime.onConnect.addListener(function (port) {
-
-    var extensionListener = function (message, sender, sendResponse) {
-
-        // The original connection event doesn't include the tab ID of the
-        // DevTools page, so we need to send it explicitly.
-        if (message.name == "init") {
-          connections[message.tabId] = port;
-          return;
-        }
-
-	// other message handling
-    }
-
-    // Listen to messages sent from the DevTools page
-    port.onMessage.addListener(extensionListener);
-
-    port.onDisconnect.addListener(function(port) {
-        port.onMessage.removeListener(extensionListener);
-
-        var tabs = Object.keys(connections);
-        for (var i=0, len=tabs.length; i < len; i++) {
-          if (connections[tabs[i]] == port) {
-            delete connections[tabs[i]]
-            break;
-          }
-        }
-    });
-});
-
-// Receive message from content script and relay to the devTools page for the
-// current tab
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    // Messages from content scripts should have sender.tab set
-    if (sender.tab) {
-      var tabId = sender.tab.id;
-      if (tabId in connections) {
-        connections[tabId].postMessage(request);
-      } else {
-        console.log("Tab not found in connection list.");
-      }
-    } else {
-      console.log("sender.tab not defined.");
-    }
-    return true;
-});
-
-// Create a connection to the background page
-var backgroundPageConnection = chrome.runtime.connect({
-    name: "panel"
-});
-
-backgroundPageConnection.postMessage({
-    name: 'init',
-    tabId: chrome.devtools.inspectedWindow.tabId
-});*/

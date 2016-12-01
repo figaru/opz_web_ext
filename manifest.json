@@ -28,6 +28,14 @@
     "scripts": ["main.js"]
   },
 
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end" 
+    }
+  ],
+
   "web_accessible_resources": [
     "main.js"
   ],

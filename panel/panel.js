@@ -12,7 +12,12 @@ backgroundPageConnection.onMessage.addListener(function(request, sender){
 	}else if(request.action === "main"){
 		setupMain();
 	}else if(request.action === "data"){
-		setupData(request.data);
+		setupData(request.data, request.tracking);
+	}else if(request.action === "error"){
+		$("#body").removeClass();
+		$("#body").addClass("action-login");
+
+		$("#login-message").html(request.msg);
 	}	
 });
 
@@ -22,10 +27,12 @@ function setupMain(){
 
 	backgroundPageConnection.postMessage({action: "data"});
 }
-function setupData(data){
+
+function setupData(data, status){
 	//lets setup user display data
 	$("#data-company").html(data.company);
 	$("#data-name").html(data.name);
+	$("#status").prop('checked', status);
 }
 
 $('document').ready(function() {
@@ -43,4 +50,41 @@ $('document').ready(function() {
 
 	    return false;
 	});
+
+	$('#status').on('change', function(){ // on change of state
+
+        if(this.checked) // if changed state is "CHECKED"
+        {	
+        	//validate private hours and days
+            if(true){
+                backgroundPageConnection.postMessage({action: "tracking", status: true});
+            }else{
+                $("#status").prop('checked', false);
+            }   
+        }else{
+           backgroundPageConnection.postMessage({action: "tracking", status: false});
+        }
+    });
 });
+
+function validatePrivate(){
+    var today = new Date().getDay();
+    var now = new Date().getHours();
+
+    var settings = appParams.user;
+
+    for(let day of settings.privateDays){
+        if(today == day){
+            return false;
+        }
+    }
+
+    for(let hour of settings.privateHours){
+        if(now == hour){
+            return false;
+        }
+    }
+
+
+    return true;
+}
