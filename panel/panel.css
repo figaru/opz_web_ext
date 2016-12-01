@@ -1,6 +1,8 @@
 html, body{
 	font-family: 'Roboto', sans-serif !important;
 	font-weight: 300;
+	padding: 0px;
+	margin: 0px;
 	font-size: 16px;
 	color: #444;
 	text-rendering: optimizeLegibility;
@@ -187,11 +189,16 @@ header .details{
 }
 
 .panel-login footer{
-	height: 100px;
-	padding: 10%;
+	height: 105px;
 	
 	background-color: #f1f1f1;
 	border-top: 1px solid #ccc;
+}.panel-login footer .footer-link{
+	flex: 1;
+	padding: 10%;
+
+	box-sizing: border-box;
+	overflow: hidden;
 
 	-ms-box-orient: horizontal;
 	display: -webkit-box;
@@ -203,7 +210,9 @@ header .details{
 
 	-webkit-flex-flow: row wrap;
 	flex-flow: row wrap;
-}.panel-login footer .footer-link{
+
+	-webkit-align-content: c
+}.footer-link .link{
 	width: 100%;
 	text-align: center;
 }

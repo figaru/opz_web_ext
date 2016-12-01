@@ -1,5 +1,11 @@
 let LOGIN_REQUIRED = true;
 let SYNC_REQUIRED = true;
+
+let AUTH_STATE = {
+	error: false,
+	message: "You have been logged in!",
+}
+
 let CONNECTION_ERROR = false;
 
 const API_SYNC = "http://localhost:5000/api/v1/sync";
@@ -11,7 +17,7 @@ let TRACKING = false;
 let sync = {};
 let user = {};
 
-//chrome.storage.local.remove(["sync", "user"]);
+chrome.storage.local.remove(["sync", "user"]);
 
 //##################################### RUNTIME MESSAGES ####################################	
 var openCount = 0;
