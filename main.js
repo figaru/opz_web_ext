@@ -4,15 +4,21 @@ let SYNC_REQUIRED = true;
 let sync = {};
 let user = {};
 
+chrome.storage.local.remove(["sync", "user"]);
 
+//##################################### RUNTIME MESSAGES ####################################	
 var openCount = 0;
 chrome.runtime.onConnect.addListener(function (port) {
     if (port.name == "panel") {
       if (openCount == 0) {
         console.log("Panel window opening.");
 
-        if(LOGIN_REQUIRED)
-        	port.postMessage({action: "login"});
+        if(LOGIN_REQUIRED){
+           	port.postMessage({action: "login"});
+        }else{
+        	port.postMessage({action: "main", data: user});
+        }
+
       }
       openCount++;
 
@@ -30,6 +36,31 @@ chrome.runtime.onConnect.addListener(function (port) {
 	        }).catch(error => {
 
 	        });
+      	}else if(request.action === "data"){
+
+      		if(SYNC_REQUIRED){
+      			syncRequest().then(syncResponse =>{
+					//if loggin not required -> sync data
+					if(!LOGIN_REQUIRED)
+						chrome.storage.local.get("user", function(items){
+							if(items.user){
+
+								SYNC_REQUIRED = false;
+
+								user = items.user;
+
+								port.postMessage({action: "data", data: user});
+							}else{
+
+							}
+						});			
+				}).catch(error => {
+					console.log(error);
+				});
+      		}else{
+      			port.postMessage({action: "data", data: user});
+      		}
+
       	}
 
       });
@@ -45,10 +76,8 @@ chrome.runtime.onConnect.addListener(function (port) {
 
 
 //############################# INITIALIZE ADDON ############################################
-const init = function(){
+function init(){
 	console.log("started");
-
-	//chrome.storage.local.remove(["sync", "user"]);
 
 	//get necessary api sync data if exists.
 	chrome.storage.local.get("sync", function(items){
@@ -84,55 +113,6 @@ const init = function(){
 
 init();
 
-
-/*syncRequest().then(syncResponse =>{
-				if(syncResponse.status === "success"){
-					console.log(syncResponse.data);
-				}else if(syncResponse.status === "error"){
-					sync = {};
-
-					chrome.storage.local.remove("sync");
-
-					LOGIN_REQUIRED = true;
-				}else{
-					console.log(syncResponse.message);
-				}
-			}).catch(error => {
-				console.log(error);
-			});
-*/
-
-
-/*loginRequest({}).then(response => {
-	
-	if(response.status === "success"){
-		setStorage("sync", response.data).then(() => {
-			console.log("stored data");
-
-			syncRequest().then(syncResponse =>{
-				if(syncResponse.status === "success"){
-					console.log(syncResponse);
-				}else{
-					console.log(syncResponse.message);
-				}
-			}).catch(error => {
-				console.log(error);
-			});
-
-		}).catch(() => {	
-			console.log("failed to store");
-		});
-
-	}else{
-		console.log("FAILED LOGIN - Line 31");
-		console.log(response.status);
-		console.log(response);
-	}
-
-}).catch(error => {	
-	console.log(error);
-});*/
-
 //##################################### REQUESTS ########################################
 function syncRequest(){
     // Promises require two functions: one for success, one for failure
@@ -156,6 +136,7 @@ function syncRequest(){
 					setStorage("user", syncResponse.data).then(() => {
 						console.log("stored data");
 
+						SYNC_REQUIRED = false;
 
 						resolve();
 					}).catch(() => {	
@@ -254,7 +235,6 @@ function setStorage(key, data) {
 	    // Save it using the Chrome extension storage API.
 	    chrome.storage.local.set(store, function() {
 	      // Notify that we saved.
-	      console.log('Settings saved');
 	      resolve();
 	    });
 	});
@@ -278,7 +258,7 @@ chrome.storage.onChanged.addListener(function(changes, namespace) {
 
   		if(key === "sync")
   			sync = storageChange.newValue;
-  		else if(key == "user")
+  		else if(key === "user")
   			user = storageChange.newValue;
     }
 });

@@ -1,4 +1,3 @@
-
 let backgroundPageConnection = chrome.runtime.connect({
     name: "panel"
 });
@@ -11,15 +10,22 @@ backgroundPageConnection.onMessage.addListener(function(request, sender){
 		$("#body").removeClass();
 		$("#body").addClass("action-login");
 	}else if(request.action === "main"){
-		$("#body").removeClass();
-		$("#body").addClass("action-main");
-	}
-
-	setText("Response from main");
+		setupMain();
+	}else if(request.action === "data"){
+		setupData(request.data);
+	}	
 });
 
-function setText(string){
-	$("text").html(string);
+function setupMain(){
+	$("#body").removeClass();
+	$("#body").addClass("action-main");
+
+	backgroundPageConnection.postMessage({action: "data"});
+}
+function setupData(data){
+	//lets setup user display data
+	$("#data-company").html(data.company);
+	$("#data-name").html(data.name);
 }
 
 $('document').ready(function() {

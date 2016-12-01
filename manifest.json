@@ -1,10 +1,10 @@
 {
 
   "manifest_version": 2,
-  "name": "Opz Web Extension",
+  "name": "Opz.io Mozilla",
   "version": "1.0",
 
-  "description": "Opz.io time tracker browser extension",
+  "description": "Seamless Project Management",
 
   "browser_action": {
     "browser_style": false,
