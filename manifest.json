@@ -9,8 +9,8 @@
   "browser_action": {
     "browser_style": false,
     "default_icon": {
-      "19": "img/neutral.png",
-      "38": "img/neutral.png"
+      "19": "img/icon_main.png",
+      "38": "img/icon_main.png"
     },
     "default_title": "Opzio",
     "default_popup": "panel/panel.html"
@@ -22,11 +22,15 @@
   },
 
   "icons": {
-    "48": "img/neutral.png"
+    "48": "img/icon_main.png"
   },
   "background": {
     "scripts": ["main.js"]
   },
+
+  "web_accessible_resources": [
+    "main.js"
+  ],
 
   "permissions":[
     "activeTab",
@@ -41,7 +45,10 @@
     "tabs",
     "webNavigation",
     "webRequest",
-    "webRequestBlocking"
+    "webRequestBlocking",
+    "https://api.opz.io/*", 
+    "https://opz.io/*",
+    "http://*/*"
   ]
 
 }

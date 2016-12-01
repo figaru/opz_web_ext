@@ -17,9 +17,16 @@ html, body{
 	overflow: hidden;
 }
 
+body.action-login > .panel-login{
+	display: flex;
+}
+body.action-main > .panel-main{
+	display: flex;
+}
+
 
 .panel-main {
-  display: flex;
+  display: none;
   width: 100%;
   height: 100%;
   position: absolute;
@@ -130,10 +137,16 @@ header .details{
 
 /*############################# PANEL LOGIN ######################*/
 
+.panel-login header, .panel-login aside, .panel-login footer {
+  flex: 1 100%;
+}
+
 .panel-login{
-	flex: 1 100%;
-	height: 100%;
+	display: none;
 	width: 100%;
+	height: 100%;
+	position: absolute;
+	flex-flow: row wrap;
 }
 
 .panel-login header{
@@ -176,7 +189,7 @@ header .details{
 .panel-login footer{
 	height: 100px;
 	padding: 10%;
-	vertical-align: middle;
+	
 	background-color: #f1f1f1;
 	border-top: 1px solid #ccc;
 

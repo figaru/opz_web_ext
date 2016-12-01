@@ -5,9 +5,11 @@
 		<link href="extension.css" rel="stylesheet">
 
 		<link href="panel.css" rel="stylesheet">
+
+		<script type="text/javascript" src="jquery.min.js"></script>
 		
 	</head>
-	<body>
+	<body id="body" class="action-main">
 		<section class="panel-main">
 			<header>
 				<!-- <div class="logo">
@@ -20,6 +22,7 @@
 			</header>
 			<aside>
 				<button id="button">click</button>
+				<p id="text"></p>
 			</aside>
 			<footer>
 				<section class="switch">
@@ -31,13 +34,13 @@
 				</section>
 			</footer>
 		</section>
-		<!-- <section class="panel-login">
+		<section class="panel-login">
 			<header>
 				<div class="login-header"></div>
 			</header>
 			<aside>
-				<form class="form-login">
-					<div class="login-message">
+				<form class="form-login" id="form-login">
+					<div class="login-message" id="login-message">
 						Fill in your credentials bellow to sign in to your opzio account.
 					</div>
 					<input type="username" id="form-user" placeholder="Username">
@@ -48,7 +51,7 @@
 			<footer>
 				<div class="footer-link">Cant login? <a href="https://opz.io/login">Click here!</a></div>
 			</footer>
-		</section> -->
+		</section>
 		<script type="text/javascript" src="panel.js"></script>
 	</body>
 </html>
