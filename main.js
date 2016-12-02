@@ -45,8 +45,8 @@ chrome.runtime.onConnect.addListener(function (port) {
       	console.log(request);
       	if(request.action === "auth"){
       		let data = JSON.stringify({
-	        	username: request.cred.user,
-	        	password: request.cred.pass
+	        	user: request.cred.user,
+	        	pass: request.cred.pass
 	        });
 
 	        loginRequest(data).then(response => {
@@ -300,8 +300,11 @@ function loginRequest(data){
 					});
 
 				}else{
-					console.log(response.status);
-					console.log(response);
+					AUTH_STATE['error'] = true;
+	            	AUTH_STATE['message'] = "The credentials entered are not valid.";
+
+	                // It's a failure, so let's reject the promise
+	                reject(xhr.response);
 				}
             }else if(xhr.status === 401) {
             	AUTH_STATE['error'] = true;
