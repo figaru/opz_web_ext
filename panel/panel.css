@@ -271,6 +271,10 @@ header .details{
 	background-position: center center;
 }
 
+.panel-login .loading > input{
+
+}
+
 .panel-login > form.form-login{
 	display: flex;
 	flex-flow: row;
@@ -302,6 +306,7 @@ header .details{
 	font-size: 14px;
 	font-weight: 300;
 }form.form-login > input[type="submit"]{
+	display: block;
 	background-color:  #61E4DF;
 	cursor: pointer;
 	font-size: 16px;
@@ -311,6 +316,28 @@ header .details{
 	opacity: 0.8;
 } 
 
+form.form-login.loading > .submit{
+	display: block;
+}
+
+form.form-login.loading > input[type="submit"]{
+	display: none;
+}
+
+.submit{
+	display: none;
+	width: 100%;
+	margin: 5px;
+	padding: 8px 15px;
+	border-radius: 4px;
+	border: 0;
+	background-color:  #61E4DF;
+	font-size: 16px;
+	color: #fff;
+	outline: none;
+	text-align: center;
+	opacity: 0.8;
+}
 
 form.form-login.error > .login-error{
 	display: block;
@@ -384,5 +411,30 @@ footer section.switch input[type=checkbox].hidden{
 }
 .switch input:not(:checked) ~ p:nth-of-type(2) {
   display: block;
+}
+
+/*#########################################################################LOADER####################################################*/
+.loader{
+	display: inline-block;
+	width: 2em;
+	height: 2em;
+	color: inherit;
+	vertical-align: middle;
+	pointer-events: none;
+	border: .2em solid #FFF;
+	border-bottom-color: transparent;
+	border-radius: 50%;
+	animation: 1s load-spinner linear infinite;
+	position: relative;
+  margin: 0 auto;
+}
+
+@keyframes load-spinner {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
 }
 
