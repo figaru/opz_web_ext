@@ -24,8 +24,8 @@ var openCount = 0;
 chrome.runtime.onConnect.addListener(function (port) {
     if (port.name == "panel") {
       if (openCount == 0) {
-        console.log("Panel window opening.");
 
+        //console.log("panel opening");
         if(CONNECTION_ERROR){
         	console.log("Connection error");
         	port.postMessage({action: "error", msg: AUTH_STATE['message'] });
@@ -42,7 +42,6 @@ chrome.runtime.onConnect.addListener(function (port) {
       openCount++;
 
       port.onMessage.addListener(function(request, sender){
-      	console.log(request);
       	if(request.action === "auth"){
       		let data = JSON.stringify({
 	        	user: request.cred.user,
@@ -94,17 +93,15 @@ chrome.runtime.onConnect.addListener(function (port) {
       port.onDisconnect.addListener(function(port) {
           openCount--;
           if (openCount == 0) {
-            console.log("Last Panel window closing.");
+            //console.log("Last Panel window closing.");
           }
       });
     }
 });
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
-	console.log(request);
-
 	if(TRACKING){
-		console.log("send beat");
+		//console.log("send beat");
 		let beat = {};
 		let tabDomain = sender.tab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
         let tabTitle = sender.tab.title;
@@ -115,12 +112,12 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
         beat.url = tabUrl;
         beat.timestamp = Math.floor((new Date).getTime() / 1000);
 
-        console.log(beat);
+        //console.log(beat);
 
         beatRequest(beat);
 
 	}else{
-		console.log("NOT tracking");
+		//console.log("NOT tracking");
 	}
 
 
@@ -185,7 +182,7 @@ function beatRequest(beat){
 	        }
 	    };
 
-	    console.log(data);
+	    //console.log(data);
 
 	    data = JSON.stringify(data); //Convert to actual Json
 
@@ -281,13 +278,11 @@ function loginRequest(data){
         xhr.setRequestHeader("Content-type", "application/json");
 
         xhr.onload = () => {
-        	console.log(xhr);
             if (xhr.status === 200) {
               // We can resolve the promise
 
               let response = JSON.parse(xhr.response);
       				if(!response.error){
-
 
       					setStorage("sync", response).then(() => {
       						console.log("stored data");
@@ -319,8 +314,6 @@ function loginRequest(data){
         }
 
         xhr.onerror = () => {
-        	console.log(xhr);
-
         	CONNECTION_ERROR = true;
         	AUTH_STATE['error'] = true;
             AUTH_STATE['message'] = "Error! Unable to connect to server.";
