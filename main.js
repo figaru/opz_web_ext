@@ -19,6 +19,24 @@ let user = {};
 
 //chrome.storage.local.remove(["sync", "user"]);
 
+function status(){
+  if (!TRACKING) {
+      chrome.browserAction.setBadgeBackgroundColor({
+          color: "#CC0000"
+      });
+      chrome.browserAction.setBadgeText({
+          text: " "
+      });
+  } else {
+      chrome.browserAction.setBadgeBackgroundColor({
+          color: "#009933"
+      });
+      chrome.browserAction.setBadgeText({
+          text: " "
+      });
+  }
+}
+
 //##################################### RUNTIME MESSAGES ####################################	
 var openCount = 0;
 chrome.runtime.onConnect.addListener(function (port) {
@@ -81,6 +99,7 @@ chrome.runtime.onConnect.addListener(function (port) {
 
       	}else if(request.action === "tracking"){
       		TRACKING = request.status;
+          status();
       	}else if(request.action === "disconnect"){
       		LOGIN_REQUIRED = true;
       		SYNC_REQUIRED = true;
@@ -126,6 +145,24 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
     });
 });
 
+
+chrome.tabs.onActivated.addListener(function() {
+    /*tabPrevious = tabNow;
+    tabNow = chrome.tabs.getSelected(null, function(tab) {})
+
+    chrome.runtime.sendMessage({
+        greeting: "beat",
+        token: token
+    }, function(response) {});*/
+});
+
+chrome.tabs.onUpdated.addListener(function() {
+    /*chrome.runtime.sendMessage({
+        greeting: "beat",
+        token: token
+    }, function(response) {});*/
+});
+
 //############################# INITIALIZE ADDON ############################################
 function init(){
 	console.log("started");
@@ -159,6 +196,8 @@ function init(){
 			//login required -> do nothing but wait
 		}
 	});
+
+  status();
 
 }
 
@@ -362,7 +401,7 @@ chrome.storage.onChanged.addListener(function(changes, namespace) {
 			storageChange.oldValue,
 			storageChange.newValue);
 
-  		if(key === "sync")
+      if(key === "sync")
   			sync = storageChange.newValue;
   		else if(key === "user")
   			user = storageChange.newValue;

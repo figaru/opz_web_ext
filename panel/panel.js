@@ -3,7 +3,7 @@ let backgroundPageConnection = chrome.runtime.connect({
 });
 
 backgroundPageConnection.onMessage.addListener(function(request, sender){
-	console.log(request);
+	//console.log(request);
 	
 
 	if(request.action === "login"){
