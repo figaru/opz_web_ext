@@ -18,10 +18,15 @@
 				<div class="details">
 					<div class="company" id="data-company"></div>
 					<div class="email" id="data-name"></div>
+					<div class="actions">
+						<div class="dashboard" id="dashboard">My Dashboard</div>
+						<div class="logout" id="disconnect">Sign Out</div>
+					</div>
 				</div>
 			</header>
 			<aside>
-				<button id="disconnect">Sign Out</button>
+				<p>To start tracking your browser times switch ON the tracking mode, using the switch below.</p>
+				<p></p>
 				<p id="text"></p>
 
 			</aside>
@@ -44,11 +49,9 @@
 					<div class="login-message" id="login-message">
 						Fill in your credentials bellow to sign in to your opzio account.
 					</div>
-					<div class="login-error" id="login-error">
-						
-					</div>
-					<input type="username" id="form-user" placeholder="Username">
-					<input type="password" id="form-pass" placeholder="Password">
+					<div class="login-error" id="login-error"></div>
+					<input type="username" id="form-user" placeholder="Username" required="required">
+					<input type="password" id="form-pass" placeholder="Password" required="required">
 					<input type="submit" value="Sign In">
 				</form>
 			</aside>

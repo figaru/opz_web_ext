@@ -9,7 +9,7 @@ let AUTH_STATE = {
 let CONNECTION_ERROR = false;
 
 const API_SYNC = "http://localhost:5000/api/v1/sync";
-const API_AUTH = "http://localhost:5000/api/v1/login";
+const API_AUTH = "https://api.opz.io/api/v1/login";
 const API_BEAT = "https://api.opz.io/v1/logs";
 
 let TRACKING = false;
@@ -280,6 +280,7 @@ function loginRequest(data){
         xhr.setRequestHeader("Content-type", "application/json");
 
         xhr.onload = () => {
+        	console.log(xhr);
             if (xhr.status === 200) {
                 // We can resolve the promise
 
@@ -304,7 +305,7 @@ function loginRequest(data){
 				}
             }else if(xhr.status === 401) {
             	AUTH_STATE['error'] = true;
-            	AUTH_STATE['message'] = "The credentials enetered are not valid.";
+            	AUTH_STATE['message'] = "The credentials entered are not valid.";
 
                 // It's a failure, so let's reject the promise
                 reject(xhr.response);
@@ -313,6 +314,8 @@ function loginRequest(data){
         }
 
         xhr.onerror = () => {
+        	console.log(xhr);
+
         	CONNECTION_ERROR = true;
         	AUTH_STATE['error'] = true;
             AUTH_STATE['message'] = "Error! Unable to connect to server.";

@@ -68,10 +68,15 @@ $('document').ready(function() {
         }
     });
 
+	$('#dashboard').on('click', function(){ // on change of state
+        chrome.tabs.create({ url: "https://opz.io/dashboard" });
+    });
+
     $('#disconnect').on('click', function(){ // on change of state
 
         backgroundPageConnection.postMessage({action: "disconnect"});
     });
+
 });
 
 function validatePrivate(){
