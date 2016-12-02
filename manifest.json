@@ -1,0 +1,62 @@
+{
+
+  "manifest_version": 2,
+  "name": "Opz.io Mozilla",
+  "version": "1.0",
+
+  "description": "Seamless Project Management",
+
+  "browser_action": {
+    "browser_style": false,
+    "default_icon": {
+      "19": "img/icon_main.png",
+      "38": "img/icon_main.png"
+    },
+    "default_title": "Opzio",
+    "default_popup": "panel/panel.html"
+  },
+
+  "options_ui": {
+    "open_in_tab": true,
+    "page": "options/options.html"
+  },
+
+  "icons": {
+    "48": "img/icon_main.png"
+  },
+  "background": {
+    "scripts": ["main.js"]
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end" 
+    }
+  ],
+
+  "web_accessible_resources": [
+    "main.js"
+  ],
+
+  "permissions":[
+    "activeTab",
+    "alarms",
+    "bookmarks",
+    "contextMenus",
+    "cookies",
+    "history",
+    "idle",
+    "notifications",
+    "storage",
+    "tabs",
+    "webNavigation",
+    "webRequest",
+    "webRequestBlocking",
+    "https://api.opz.io/*", 
+    "https://opz.io/*",
+    "http://*/*"
+  ]
+
+}

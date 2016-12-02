@@ -1,0 +1,68 @@
+<html>
+	<head>
+		<link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700" rel="stylesheet"> 
+
+		<link href="extension.css" rel="stylesheet">
+
+		<link href="panel.css" rel="stylesheet">
+
+		<script type="text/javascript" src="jquery.min.js"></script>
+		
+	</head>
+	<body id="body" class="action-main">
+		<section class="panel-main">
+			<header>
+				<!-- <div class="logo">
+					<img src="../img/neutral.png">
+				</div> -->
+				<div class="details">
+					<div class="company" id="data-company"></div>
+					<div class="email" id="data-name"></div>
+					<div class="actions">
+						<div class="dashboard" id="dashboard">My Dashboard</div>
+						<div class="logout" id="disconnect">Sign Out</div>
+					</div>
+				</div>
+			</header>
+			<aside>
+				<p>To start tracking your browser times switch ON the tracking mode, using the switch below.</p>
+				<p></p>
+				<p id="text"></p>
+
+			</aside>
+			<footer>
+				<section class="switch">
+				  <input class="checkbox" type="checkbox" id="status" />
+				  <label for="status"></label>
+				  
+				  <p>Time Tracker: Running</p>
+				  <p>Time Tracker: Stopped</p>
+				</section>
+			</footer>
+		</section>
+		<section class="panel-login">
+			<header>
+				<div class="login-header"></div>
+			</header>
+			<aside>
+				<form class="form-login" id="form-login">
+					<div class="login-message" id="login-message">
+						Fill in your credentials bellow to sign in to your opzio account.
+					</div>
+					<div class="login-error" id="login-error"></div>
+					<input type="username" id="form-user" placeholder="Username" required="required">
+					<input type="password" id="form-pass" placeholder="Password" required="required">
+					<input type="submit" value="Sign In">
+				</form>
+			</aside>
+			<footer>
+				<div class="footer-link">
+					<div class="link">
+						Cant login? <a href="https://opz.io/login">Click here!</a>
+					</div>
+				</div>
+			</footer>
+		</section>
+		<script type="text/javascript" src="panel.js"></script>
+	</body>
+</html>

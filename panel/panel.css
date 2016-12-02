@@ -1,0 +1,388 @@
+html, body{
+	font-family: 'Roboto', sans-serif !important;
+	font-weight: 300;
+	padding: 0px;
+	margin: 0px;
+	font-size: 16px;
+	color: #444;
+	text-rendering: optimizeLegibility;
+}
+
+form.form-login > input:focus{
+	text-decoration: none !important;
+	outline: none !important;
+}
+
+html, body{
+	width: 400px;
+	height: 600px;
+	overflow: hidden;
+}
+
+body.action-login > .panel-login{
+	display: flex;
+}
+body.action-main > .panel-main{
+	display: flex;
+}
+
+
+.panel-main {
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  flex-flow: row wrap;
+}
+
+.panel-main header, .panel-main aside, .panel-main footer {
+  flex: 1 100%;
+}
+
+.panel-main header{
+  	height: 200px;
+
+  	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
+}header .logo{
+	width: 100px;
+	margin: 25px;
+	box-sizing: border-box;
+	list-style: none;
+	overflow: hidden;
+	display: flex;
+	flex-direction: row;
+	align-content: flex-start;
+	background: url("../img/neutral.png");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	}
+header .details{
+	flex: 1;
+	padding: 10%;
+
+	box-sizing: border-box;
+	overflow: hidden;
+
+	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
+
+	-webkit-align-content: center; 
+	align-content: center; 
+}.details .company{
+	width: 100%;
+	font-size: 32px;
+	font-weight: 300;
+	}.details .email{
+		width: 100%;
+		font-size: 16px;
+		font-weight: 300;
+		color: #BDBDBD;
+	}.details .actions{
+			width: 100%;
+			margin: 5px 0px;
+			font-size: 16px;
+			font-weight: 300;
+			color: #BDBDBD;
+
+			-ms-box-orient: horizontal;
+			display: -webkit-box;
+			display: -moz-box;
+			display: -ms-flexbox;
+			display: -moz-flex;
+			display: -webkit-flex;
+			display: flex;
+
+			-webkit-flex-flow: row wrap;
+			flex-flow: row wrap;
+
+			-webkit-align-content: center; 
+			align-content: center; 
+		}.actions .dashboard {
+			padding: 5px 10px;
+			background-color:  #61E4DF;
+			cursor: pointer;
+			font-size: 16px;
+			color: #fff;
+			outline: none;
+			border-radius: 4px;
+			display: inline-flex;
+		}.actions .logout {
+			padding: 5px 10px;
+			margin-left: 5px;
+			background-color:  #ccc;
+			cursor: pointer;
+			font-size: 16px;
+			color: #fff;
+			outline: none;
+			border-radius: 4px;
+			display: inline-flex;
+
+		}.actions .logout:hover, .actions .dashboard:hover{
+			opacity: 0.8;
+		} 
+
+.panel-main aside{
+	height: 200px;
+	padding: 5% 10%;
+
+	background-color: #f9f9f9;
+	border-top: 1px solid #ddd;
+
+	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
+}
+
+.panel-main footer{
+	height: 200px;
+	padding: 10%;
+	
+	background-color: #f1f1f1;
+	border-top: 1px solid #ccc;
+
+	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
+}
+
+
+
+/*############################# PANEL LOGIN ######################*/
+
+.panel-login header, .panel-login aside, .panel-login footer {
+  flex: 1 100%;
+}
+
+.panel-login{
+	display: none;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	flex-flow: row wrap;
+}
+
+.panel-login header{
+	height: 200px;
+	padding: 7% 10%;
+
+	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
+
+	vertical-align: middle;
+}
+
+.panel-login aside{
+	height: 300px;
+	padding: 5% 10%;
+	vertical-align: middle;
+	background-color: #f9f9f9;
+	border-top: 1px solid #ddd;
+
+	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
+
+	-webkit-align-content: center;
+	align-content: center;
+}
+
+.panel-login footer{
+	height: 105px;
+	
+	background-color: #f1f1f1;
+	border-top: 1px solid #ccc;
+}.panel-login footer .footer-link{
+	flex: 1;
+	padding: 10%;
+
+	box-sizing: border-box;
+	overflow: hidden;
+
+	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
+
+	-webkit-align-content: center;
+}.footer-link .link{
+	width: 100%;
+	text-align: center;
+}
+
+.panel-login .login-header{
+	flex: 1 100%;
+	height: 100%;
+	background-image: url("../img/neutral.png");
+	background-size: 40% 25%;
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+.panel-login > form.form-login{
+	display: flex;
+	flex-flow: row;
+}form.form-login > .login-message{
+	display: block;
+	width: 100%;
+	margin: 0px 5px;
+	padding: 10px 0px;
+	box-sizing: border-box;
+}form.form-login > .login-error{
+	display: none;
+	width: 100%;
+	margin: 5px 5px;
+	padding: 10px;
+	border-radius: 4px;
+	box-sizing: border-box;
+	background-color: #f44336;
+	font-size: 16px;
+	color: #fff;
+}form.form-login > input{
+	width: 100%;
+	margin: 5px;
+	padding: 15px;
+	border-radius: 4px;
+	border: 0;
+}form.form-login > input[type="username"], form.form-login > input[type="password"]{
+	background-color: #fff;
+	border: 1px solid #ddd;
+	font-size: 14px;
+	font-weight: 300;
+}form.form-login > input[type="submit"]{
+	background-color:  #61E4DF;
+	cursor: pointer;
+	font-size: 16px;
+	color: #fff;
+	outline: none;
+}form.form-login input[type="submit"]:hover{
+	opacity: 0.8;
+} 
+
+
+form.form-login.error > .login-error{
+	display: block;
+}form.form-login.error > .login-message{
+	display: none;
+}
+
+/*############################# INPUT TRACK SWITCH ##########################*/
+
+.switch {
+  width: 100%;
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  box-sizing: border-box;
+  position: relative;
+  bottom: 0px;
+}
+.switch input.checkbox{
+  display: block;
+  opacity: 0;
+  visibility: hidden;
+  width: 100px;
+}
+
+footer section.switch input[type=checkbox].hidden{
+   display:none;
+   opacity: 0;
+}
+
+.switch label {
+  width: 60px;
+  height: 30px;
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  background: #BDBDBD;
+  border-radius: 30px;
+  
+  transition: background-color 0.4s;
+  -moz-transition: background-color 0.4s;
+  -webkit-transition: background-color 0.4s;
+}
+.switch label:after {
+  left: 0;
+  width: 20px;
+  height: 20px;
+  margin: 5px;
+  content: '';
+  position: absolute;
+  background: #FFF;
+  border-radius: 10px;
+}
+.switch input:checked + label {
+  background: rgb(39, 173, 95);
+}
+.switch input:checked + label:after {
+  left: auto;
+  right: 0;
+}
+
+.switch p {
+  color: rgb(189, 189, 189);
+  display: none;
+  font-size: 16px;
+  font-weight: 300;
+}
+.switch input:checked ~ p:nth-of-type(1) {
+  color: rgb(39, 173, 95);
+  display: block;
+}
+.switch input:not(:checked) ~ p:nth-of-type(2) {
+  display: block;
+}
+
