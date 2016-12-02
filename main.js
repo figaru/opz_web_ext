@@ -8,8 +8,8 @@ let AUTH_STATE = {
 
 let CONNECTION_ERROR = false;
 
-const API_SYNC = "http://localhost:5000/api/v1/sync";
-const API_AUTH = "https://api.opz.io/api/v1/login";
+const API_SYNC = "https://api.opz.io/v1/sync";
+const API_AUTH = "https://api.opz.io/v1/auth";
 const API_BEAT = "https://api.opz.io/v1/logs";
 
 let TRACKING = false;
@@ -275,43 +275,45 @@ function loginRequest(data){
     return new Promise(function (resolve, reject) {
         var xhr = new XMLHttpRequest();
 
+        data = JSON.parse(data);
 
-        xhr.open('POST', API_AUTH, true);
+        xhr.open('GET', API_AUTH + "?user=" + data.user + "&pass=" + data.pass, true);
         xhr.setRequestHeader("Content-type", "application/json");
 
         xhr.onload = () => {
         	console.log(xhr);
             if (xhr.status === 200) {
-                // We can resolve the promise
+              // We can resolve the promise
 
-                let response = JSON.parse(xhr.response);
+              let response = JSON.parse(xhr.response);
+      				if(!response.error){
 
-				if(response.status === "success"){
-					setStorage("sync", response.data).then(() => {
-						console.log("stored data");
 
-						LOGIN_REQUIRED = false;
+      					setStorage("sync", response).then(() => {
+      						console.log("stored data");
 
-						init();
+      						LOGIN_REQUIRED = false;
 
-						resolve();
-					}).catch(() => {	
-						console.log("failed to store");
-					});
+      						init();
 
-				}else{
-					AUTH_STATE['error'] = true;
+      						resolve();
+      					}).catch(() => {	
+      						console.log("failed to store");
+      					});
+
+      				}else{
+      					AUTH_STATE['error'] = true;
 	            	AUTH_STATE['message'] = "The credentials entered are not valid.";
 
 	                // It's a failure, so let's reject the promise
 	                reject(xhr.response);
-				}
+      				}
             }else if(xhr.status === 401) {
             	AUTH_STATE['error'] = true;
             	AUTH_STATE['message'] = "The credentials entered are not valid.";
 
-                // It's a failure, so let's reject the promise
-                reject(xhr.response);
+              // It's a failure, so let's reject the promise
+              reject(xhr.response);
             }
         
         }
