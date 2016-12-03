@@ -1,3 +1,5 @@
+let ICOGNITO = chrome.extension.inIncognitoContext;
+
 let LOGIN_REQUIRED = true;
 let SYNC_REQUIRED = true;
 
@@ -18,6 +20,62 @@ let sync = {};
 let user = {};
 
 //chrome.storage.local.remove(["sync", "user"]);
+
+//############################# INITIALIZE ADDON ############################################
+function init(){
+  //console.log("started");
+  chrome.windows.getCurrent(function(data){
+    ICOGNITO = data.icognito;
+
+    if(data.icognito){
+      chrome.browserAction.disable();
+      chrome.notifications.create({
+          "type": "basic",
+          "iconUrl": chrome.extension.getURL("img/icon_main.png"),
+          "title": "Opzio Disabled",
+          "message": "Opzio addon as been disabled to preserve your privacy while browsing in privacy mode."
+      });
+
+      return;
+    }
+
+  })
+
+  //get necessary api sync data if exists.
+  chrome.storage.local.get("sync", function(items){
+    if(items.sync){
+
+      LOGIN_REQUIRED = false;
+
+      sync = items.sync;
+
+      syncRequest().then(syncResponse =>{
+        //if loggin not required -> sync data
+        if(!LOGIN_REQUIRED)
+          chrome.storage.local.get("user", function(items){
+            if(items.user){
+
+              SYNC_REQUIRED = false;
+
+              user = items.user;
+            }else{
+
+            }
+          });     
+      }).catch(error => {
+        console.log(error);
+      });
+
+    }else{
+      //login required -> do nothing but wait
+    }
+  });
+
+  status();
+
+}
+
+init();
 
 function status(){
   if (!TRACKING) {
@@ -103,6 +161,7 @@ chrome.runtime.onConnect.addListener(function (port) {
       	}else if(request.action === "disconnect"){
       		LOGIN_REQUIRED = true;
       		SYNC_REQUIRED = true;
+          TRACKING = false;
       		chrome.storage.local.remove(["sync"]);
       		port.postMessage({action: "login"});
       	}
@@ -119,7 +178,7 @@ chrome.runtime.onConnect.addListener(function (port) {
 });
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
-	if(TRACKING){
+	if(TRACKING && !LOGIN_REQUIRED && !ICOGNITO){
 		//console.log("send beat");
 		let beat = {};
 		let tabDomain = sender.tab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
@@ -136,7 +195,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
         beatRequest(beat);
 
 	}else{
-		//console.log("NOT tracking");
+
+		console.log("NOT tracking");
 	}
 
 
@@ -163,45 +223,6 @@ chrome.tabs.onUpdated.addListener(function() {
     }, function(response) {});*/
 });
 
-//############################# INITIALIZE ADDON ############################################
-function init(){
-	console.log("started");
-
-	//get necessary api sync data if exists.
-	chrome.storage.local.get("sync", function(items){
-		if(items.sync){
-
-			LOGIN_REQUIRED = false;
-
-			sync = items.sync;
-
-			syncRequest().then(syncResponse =>{
-				//if loggin not required -> sync data
-				if(!LOGIN_REQUIRED)
-					chrome.storage.local.get("user", function(items){
-						if(items.user){
-
-							SYNC_REQUIRED = false;
-
-							user = items.user;
-						}else{
-
-						}
-					});			
-			}).catch(error => {
-				console.log(error);
-			});
-
-		}else{
-			//login required -> do nothing but wait
-		}
-	});
-
-  status();
-
-}
-
-init();
 
 //##################################### REQUESTS ########################################
 function beatRequest(beat){

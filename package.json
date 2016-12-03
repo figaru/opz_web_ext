@@ -1,7 +1,21 @@
 {
-
+  "title": "Opz.io Mozilla",
+  "name": "opzfirefox",
+  "icon": "resource://@opzfirefox/data/img/icon_main.png",
+  "version": "0.0.8",
+  "description": "Seamless Project Management",
+  "main": "main.js",
+  "author": "opz.io",
+  "engines": {
+    "firefox": ">=38.0a1",
+    "fennec": ">=38.0a1"
+  },
+  "license": "MIT",
+  "keywords": [
+    "jetpack"
+  ],
   "manifest_version": 2,
-  "name": "Opz.io",
+  "name": "Opz.io Mozilla",
   "version": "1.0",
 
   "description": "Seamless Project Management",
@@ -46,6 +60,7 @@
     "bookmarks",
     "contextMenus",
     "cookies",
+    "history",
     "idle",
     "notifications",
     "storage",
