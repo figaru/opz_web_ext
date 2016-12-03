@@ -7,23 +7,63 @@ let AUTH_STATE = {
 	error: false,
 	message: "You have been logged in!",
 }
-
 let CONNECTION_ERROR = false;
 
+//API endpoints
 const API_SYNC = "https://api.opz.io/v1/sync";
 const API_AUTH = "https://api.opz.io/v1/auth";
 const API_BEAT = "https://api.opz.io/v1/logs";
 
 let TRACKING = false;
+let PRIVATE = false;
 
-let sync = {};
-let user = {};
+//get browser agent and version
+let BROWSER = undefined;
+
+//sync credentials and user details
+let sync = undefined;
+let user = undefined;
+
+//test data - workable hours and days
+let today = new Date().getDay();
+let now = new Date().getHours();
+let workableWeekDays = [1,2,3,4,5,6];
+let workableHours = [9,10,11,12,13,14,15,16,17,18,19,20,21];
 
 //chrome.storage.local.remove(["sync", "user"]);
+
+navigator.browserSpecs = (function(){
+    var ua= navigator.userAgent, tem, 
+    M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+    if(/trident/i.test(M[1])){
+        tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
+        return {name:'IE',version:(tem[1] || '')};
+    }
+    if(M[1]=== 'Chrome'){
+        tem= ua.match(/\b(OPR|Edge)\/(\d+)/);
+        if(tem!= null) return {name:tem[1].replace('OPR', 'Opera'),version:tem[2]};
+    }
+    M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+    if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+    return {name:M[0],version:M[1]};
+})();
+
+
+/*if (navigator.browserSpecs.name == 'Firefox') {
+    // Do something for Firefox.
+    if (navigator.browserSpecs.version > 42) {
+        // Do something for Firefox versions greater than 42.
+    }
+}
+else {
+    // Do something for all other browsers.
+}*/
 
 //############################# INITIALIZE ADDON ############################################
 function init(){
   //console.log("started");
+  BROWSER = navigator.browserSpecs; //Object { name: "Firefox", version: "42" }
+
   chrome.windows.getCurrent(function(data){
     ICOGNITO = data.icognito;
 
@@ -58,8 +98,20 @@ function init(){
               SYNC_REQUIRED = false;
 
               user = items.user;
-            }else{
 
+              if(workableWeekDays.indexOf(today) > 0 && workableHours.indexOf(now) > 0){
+                TRACKING = true;
+                status();
+                chrome.notifications.create({
+                    "type": "basic",
+                    "iconUrl": chrome.extension.getURL("img/icon_main.png"),
+                    "title": "Opzio Tracking Enabled",
+                    "message": "You are currently tracking your workable times."
+                });
+              }
+
+            }else{
+              //no user details -> sync failed
             }
           });     
       }).catch(error => {
@@ -134,23 +186,30 @@ chrome.runtime.onConnect.addListener(function (port) {
 
       		if(SYNC_REQUIRED){
       			syncRequest().then(syncResponse =>{
-					//if loggin not required -> sync data
-					if(!LOGIN_REQUIRED)
-						chrome.storage.local.get("user", function(items){
-							if(items.user){
+  					//if loggin not required -> sync data
+              if(!LOGIN_REQUIRED){
 
-								SYNC_REQUIRED = false;
+                if(!user){
+                  chrome.storage.local.get("user", function(items){
+                    if(items.user){
 
-								user = items.user;
+                      SYNC_REQUIRED = false;
 
-								port.postMessage({action: "data", data: user, tracking: TRACKING});
-							}else{
+                      user = items.user;
 
-							}
-						});			
-				}).catch(error => {
-					console.log(error);
-				});
+                      port.postMessage({action: "data", data: user, tracking: TRACKING});
+                    }else{
+
+                    }
+                  });
+                }else{
+                  port.postMessage({action: "data", data: user, tracking: TRACKING});
+                }
+              }
+
+    				}).catch(error => {
+    					console.log(error);
+    				});
       		}else{
       			port.postMessage({action: "data", data: user, tracking: TRACKING});
       		}
@@ -233,7 +292,10 @@ function beatRequest(beat){
 
         var data = {
 	        'token': user['token'],
+          'enforcePrivate': false,
 	        'data': {
+              'enforcePrivate': PRIVATE,
+              'browser': BROWSER['name'],
 	            'domain': beat['domain'],
 	            'url': beat['url'],
 	            'title': beat['title'],
@@ -415,12 +477,12 @@ function getStorage(key){
 chrome.storage.onChanged.addListener(function(changes, namespace) {
     for (key in changes) {
      	var storageChange = changes[key];
-  		console.log('Storage key "%s" in namespace "%s" changed. ' +
+  		/*console.log('Storage key "%s" in namespace "%s" changed. ' +
 			'Old value was "%s", new value is "%s".',
 			key,
 			namespace,
 			storageChange.oldValue,
-			storageChange.newValue);
+			storageChange.newValue);*/
 
       if(key === "sync")
   			sync = storageChange.newValue;
