@@ -32,6 +32,13 @@
 			</aside>
 			<footer>
 				<section class="switch">
+				  <input class="checkbox" type="checkbox" id="private" />
+				  <label for="private"></label>
+				  
+				  <p>Privacy Mode: On</p>
+				  <p>Privacy Mode: Off</p>
+				</section>
+				<section class="switch">
 				  <input class="checkbox" type="checkbox" id="status" />
 				  <label for="status"></label>
 				  
@@ -53,6 +60,9 @@
 					<input type="username" id="form-user" placeholder="Username" required="required">
 					<input type="password" id="form-pass" placeholder="Password" required="required">
 					<input type="submit" value="Sign In">
+					<div class="submit">
+						<div class="loader"></div>
+					</div>
 				</form>
 			</aside>
 			<footer>

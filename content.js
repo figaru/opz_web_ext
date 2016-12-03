@@ -84,7 +84,6 @@ window.addEventListener("mouseout", function() {
 });
 
 document.addEventListener('visibilitychange', function() {
-    focusevent.preventDefault();
     didClick = false;
     didKey = false;
     didmove = false;

@@ -3,10 +3,11 @@ let backgroundPageConnection = chrome.runtime.connect({
 });
 
 backgroundPageConnection.onMessage.addListener(function(request, sender){
-	console.log(request);
+	//console.log(request);
 	
 
 	if(request.action === "login"){
+		$("#form-login").removeClass("loading");
 		$("#body").removeClass();
 		$("#body").addClass("action-login");
 	}else if(request.action === "main"){
@@ -14,6 +15,7 @@ backgroundPageConnection.onMessage.addListener(function(request, sender){
 	}else if(request.action === "data"){
 		setupData(request.data, request.tracking);
 	}else if(request.action === "error"){
+		$("#form-login").removeClass("loading");
 		$("#body").removeClass();
 		$("#body").addClass("action-login");
 
@@ -24,6 +26,7 @@ backgroundPageConnection.onMessage.addListener(function(request, sender){
 });
 
 function setupMain(){
+	$("#form-login").removeClass("loading");
 	$("#body").removeClass();
 	$("#body").addClass("action-main");
 
@@ -42,6 +45,8 @@ $('document').ready(function() {
 	$("#form-login").submit(function( event ) {
 		event.preventDefault();
 	    //do not reload page;
+
+	    $("#form-login").removeClass("loading").addClass("loading");
 
 	    let cred = {
 	        user: $('#form-user').val(),
