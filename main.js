@@ -1,5 +1,7 @@
 let ICOGNITO = chrome.extension.inIncognitoContext;
 
+let IGNORE_NOTIFICATIONS = false;
+
 let LOGIN_REQUIRED = true;
 let SYNC_REQUIRED = true;
 
@@ -27,8 +29,9 @@ let user = undefined;
 //test data - workable hours and days
 let today = new Date().getDay();
 let now = new Date().getHours();
-let workableWeekDays = [1,2,3,4,5,6];
-let workableHours = [9,10,11,12,13,14,15,16,17,18,19,20,21];
+
+if(today === 0)
+  today = 7;
 
 //chrome.storage.local.remove(["sync", "user"]);
 
@@ -99,7 +102,7 @@ function init(){
 
               user = items.user;
 
-              if(workableWeekDays.indexOf(today) > 0 && workableHours.indexOf(now) > 0){
+              if(user['workableWeekDays'].indexOf(today) > 0 && user['workableHours'].indexOf(now) > 0){
                 TRACKING = true;
                 status();
                 chrome.notifications.create({
@@ -138,9 +141,16 @@ function status(){
           text: " "
       });
   } else {
-      chrome.browserAction.setBadgeBackgroundColor({
+
+      if(PRIVATE){
+        chrome.browserAction.setBadgeBackgroundColor({
+          color: "#EF9A9A"
+        });
+      }else{
+        chrome.browserAction.setBadgeBackgroundColor({
           color: "#009933"
-      });
+        });
+      }
       chrome.browserAction.setBadgeText({
           text: " "
       });
@@ -197,13 +207,13 @@ chrome.runtime.onConnect.addListener(function (port) {
 
                       user = items.user;
 
-                      port.postMessage({action: "data", data: user, tracking: TRACKING});
+                      port.postMessage({action: "data", data: user, tracking: TRACKING, private: PRIVATE});
                     }else{
 
                     }
                   });
                 }else{
-                  port.postMessage({action: "data", data: user, tracking: TRACKING});
+                  port.postMessage({action: "data", data: user, tracking: TRACKING, private: PRIVATE});
                 }
               }
 
@@ -211,18 +221,28 @@ chrome.runtime.onConnect.addListener(function (port) {
     					console.log(error);
     				});
       		}else{
-      			port.postMessage({action: "data", data: user, tracking: TRACKING});
+      			port.postMessage({action: "data", data: user, tracking: TRACKING, private: PRIVATE});
       		}
 
       	}else if(request.action === "tracking"){
       		TRACKING = request.status;
+          port.postMessage({action: "data", data: user, tracking: TRACKING, private: PRIVATE});
+
+          if(!TRACKING)
+            PRIVATE = false;
+
           status();
-      	}else if(request.action === "disconnect"){
+      	}else if(request.action === "private"){
+          PRIVATE = request.status;
+          status();
+        }else if(request.action === "disconnect"){
       		LOGIN_REQUIRED = true;
       		SYNC_REQUIRED = true;
           TRACKING = false;
+          PRIVATE = false;
       		chrome.storage.local.remove(["sync"]);
       		port.postMessage({action: "login"});
+          status();
       	}
 
       });
@@ -255,7 +275,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
 
 	}else{
 
-		console.log("NOT tracking");
+		//console.log("NOT tracking");
 	}
 
 
@@ -292,7 +312,6 @@ function beatRequest(beat){
 
         var data = {
 	        'token': user['token'],
-          'enforcePrivate': false,
 	        'data': {
               'enforcePrivate': PRIVATE,
               'browser': BROWSER['name'],
@@ -314,7 +333,7 @@ function beatRequest(beat){
         xhr.onload = () => {
             if (xhr.status === 200) {
                 // We can resolve the promise
-                console.log(xhr.response);
+                //console.log(xhr.response);
                 resolve(xhr.response);
             } else {
                 // It's a failure, so let's reject the promise
@@ -328,7 +347,11 @@ function beatRequest(beat){
             reject("Unable to load RSS");
         };
 
-        xhr.send(data);
+        try{
+          xhr.send(data);
+        }catch(e){
+          console.log(error);
+        }
     });
 }
 
@@ -344,41 +367,49 @@ function syncRequest(){
         xhr.setRequestHeader("X-Auth-Token", sync.authToken);
 
         xhr.onload = () => {
-            if (xhr.status === 200) {
-                // We can resolve the promise
+          if (xhr.status === 200) {
+            // We can resolve the promise
 
-                let syncResponse = JSON.parse(xhr.response);
+            let syncResponse = JSON.parse(xhr.response);
 
-                if(syncResponse.status === "success"){
-					
-					setStorage("user", syncResponse.data).then(() => {
-						console.log("stored data");
+            //console.log(syncResponse);
 
-						SYNC_REQUIRED = false;
+            if(syncResponse.status === "success"){
+    					
+    					chrome.storage.local.remove(["user"], function(){
+                setStorage("user", syncResponse.data).then(() => {
+                  //console.log("stored data");
 
-						resolve();
-					}).catch(() => {	
-						console.log("failed to store");
-					});
+                  SYNC_REQUIRED = false;
+
+                  resolve();
+                }).catch(() => {  
+                  console.log("failed to store");
+                  reject();
+                });
+              });
 
 
-				}else if(syncResponse.status === "error"){
-					sync = {};
+				    }else if(syncResponse.status === "error"){
+    					sync = {};
 
-					chrome.storage.local.remove("sync");
+    					chrome.storage.local.remove("sync");
 
-					LOGIN_REQUIRED = true;
-				}else{
-					console.log(syncResponse.message);
-				}
+    					LOGIN_REQUIRED = true;
 
-                resolve();
-            } else {
-                // It's a failure, so let's reject the promise
-                reject("Unable to load RSS");
-            }
+              reject();
+    				}else{
+    					console.log(syncResponse.message);
+              reject();
+    				}
+
+            //resolve();
+          } else {
+              // It's a failure, so let's reject the promise
+              reject("Unable to load RSS");
+          }
         
-        }
+        }//end onload
 
         xhr.onerror = () => {
             // It's a failure, so let's reject the promise
@@ -407,7 +438,7 @@ function loginRequest(data){
       				if(!response.error){
 
       					setStorage("sync", response).then(() => {
-      						console.log("stored data");
+      						//console.log("stored data");
 
       						LOGIN_REQUIRED = false;
 
@@ -458,11 +489,20 @@ function setStorage(key, data) {
 
 	    let store = {};
 
-		store[key] = data;
+		  store[key] = data;
+
+      //console.log(store);
 
 	    // Save it using the Chrome extension storage API.
 	    chrome.storage.local.set(store, function() {
 	      // Notify that we saved.
+        //console.log("data stored");
+
+        /*if(store['user']){
+          console.log("updating user");
+          user = data;
+        }*/
+
 	      resolve();
 	    });
 	});
@@ -475,6 +515,7 @@ function getStorage(key){
 }
 
 chrome.storage.onChanged.addListener(function(changes, namespace) {
+    //console.log("changes");
     for (key in changes) {
      	var storageChange = changes[key];
   		/*console.log('Storage key "%s" in namespace "%s" changed. ' +
@@ -484,9 +525,78 @@ chrome.storage.onChanged.addListener(function(changes, namespace) {
 			storageChange.oldValue,
 			storageChange.newValue);*/
 
+      //console.log(storageChange.newValue);
+
       if(key === "sync")
   			sync = storageChange.newValue;
   		else if(key === "user")
   			user = storageChange.newValue;
     }
 });
+
+//################################################# ALARM ###################################################
+const syncDelay = 10.0;
+const syncDelayPeriod = 10.0;
+const reminderDelay = 60.0;
+const reminderDelayPeriod = 60.0;
+
+function alarmSync(){
+
+  if(!LOGIN_REQUIRED){
+    syncRequest().then(syncResponse =>{
+      //sync user    
+    }).catch(error => {
+      console.log(error);
+    });
+  }
+}
+
+function handleAlarm(alarmInfo) {
+  if(alarmInfo.name === "reminder-alarm"){
+    console.log("reminder");
+    if(user['workableWeekDays'].indexOf(today) < 0 && user['workableHours'].indexOf(now) < 0 && !IGNORE_NOTIFICATIONS){
+      chrome.notifications.create({
+          "type": "basic",
+          "iconUrl": chrome.extension.getURL("img/icon_main.png"),
+          "title": "Tracking Reminder",
+          "message": "Your are tracking in a non-workable time.",
+          "buttons":[
+            {"title": "Don't remind me"},
+            {"title": "Dismiss"}
+          ]
+      });
+    }
+  }else if(alarmInfo.name === "sync-alarm"){
+    alarmSync();
+  }
+}
+
+
+chrome.alarms.create("sync-alarm", {
+  delayInMinutes: syncDelay,
+  periodInMinutes: syncDelay
+});
+
+chrome.alarms.create("reminder-alarm", {
+  delayInMinutes: reminderDelay,
+  periodInMinutes: reminderDelay
+});
+
+chrome.alarms.onAlarm.addListener(handleAlarm);
+
+
+//########################################## NOTIFICATIONS #############################################
+function notificationButton(event){
+  console.log(event);
+}
+
+ chrome.notifications.onButtonClicked.addListener(function(notificationId, buttonIndex){
+  //0 = dont reminde me
+  //1 = dismiss
+  console.log(buttonIndex);
+
+  if(buttonIndex === 0)
+    IGNORE_NOTIFICATIONS = true;
+
+  chrome.notifications.clear(notificationId);
+ });

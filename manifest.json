@@ -1,9 +1,9 @@
 {
 
   "manifest_version": 2,
-  "name": "Opz.io",
-  "version": "1.0",
-
+  "name": "Opz.io Chrome",
+  "version": "1.1",
+  "short_name": "Opzio browser time tracker",
   "description": "Seamless Project Management",
 
   "browser_action": {
@@ -22,7 +22,8 @@
   },
 
   "icons": {
-    "48": "img/icon_main.png"
+    "48": "img/icon_main.png",
+    "96": "img/icon_main.png"
   },
   "background": {
     "scripts": ["main.js"]

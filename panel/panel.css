@@ -141,7 +141,7 @@ header .details{
 
 .panel-main aside{
 	height: 200px;
-	padding: 5% 10%;
+	padding: 2% 10%;
 
 	background-color: #f9f9f9;
 	border-top: 1px solid #ddd;
@@ -175,6 +175,9 @@ header .details{
 
 	-webkit-flex-flow: row wrap;
 	flex-flow: row wrap;
+
+	-webkit-align-content: center; 
+	align-content: center; 
 }
 
 
@@ -346,21 +349,64 @@ form.form-login.error > .login-error{
 }
 
 /*############################# INPUT TRACK SWITCH ##########################*/
+.tracking > .track-action{
+	padding: 0%;
+}.tracking > .track-action .private{
+	z-index: 1;
+	opacity: 1;
+	margin-top:0px;
+}
+
+.track-action{
+	flex: 1;
+	padding: 15%;
+
+	box-sizing: border-box;
+	overflow: hidden;
+
+	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
+
+	-webkit-align-content: center; 
+	align-content: center; 
+}
 
 .switch {
-  width: 100%;
-  display: table-cell;
-  vertical-align: middle;
-  text-align: center;
-  box-sizing: border-box;
-  position: relative;
-  bottom: 0px;
+	display: table-cell;
+	width: 100%;
+	vertical-align: middle;
+	text-align: center;
+	box-sizing: border-box;
+	position: relative;
+	bottom: 0px;
+	height: 75px;
+	top: -10px;
+}
+.switch.private{
+	display: block;
+	position: relative;
+	z-index: -1;
+	margin-top: -80px;
+	margin-bottom: 8px;
+	opacity: 0;
+
+	-webkit-transition: opacity ease-in-out 1s;
+	transition: opacity ease-in-out 0.6s, margin-top ease-in-out 0.3s;
 }
 .switch input.checkbox{
   display: block;
   opacity: 0;
   visibility: hidden;
   width: 100px;
+  height: 5px;
 }
 
 footer section.switch input[type=checkbox].hidden{
@@ -394,6 +440,11 @@ footer section.switch input[type=checkbox].hidden{
 .switch input:checked + label {
   background: rgb(39, 173, 95);
 }
+
+.switch.private input:checked + label{
+	background-color: #EF9A9A;
+}
+
 .switch input:checked + label:after {
   left: auto;
   right: 0;
@@ -405,6 +456,12 @@ footer section.switch input[type=checkbox].hidden{
   font-size: 16px;
   font-weight: 300;
 }
+
+.switch.private input:checked ~ p:nth-of-type(1) {
+  color: #EF9A9A;
+  display: block;
+}
+
 .switch input:checked ~ p:nth-of-type(1) {
   color: rgb(39, 173, 95);
   display: block;

@@ -25,26 +25,28 @@
 				</div>
 			</header>
 			<aside>
-				<p>To start tracking your browser times switch ON the tracking mode, using the switch below.</p>
-				<p></p>
+				<p>To start tracking your browser times, switch ON the tracking mode, using the switch below.</p>
+				<p>If the private switch is toggled, opzio will set any received data on the server side as private.</p>
 				<p id="text"></p>
 
 			</aside>
-			<footer>
-				<section class="switch">
-				  <input class="checkbox" type="checkbox" id="private" />
-				  <label for="private"></label>
-				  
-				  <p>Privacy Mode: On</p>
-				  <p>Privacy Mode: Off</p>
-				</section>
-				<section class="switch">
-				  <input class="checkbox" type="checkbox" id="status" />
-				  <label for="status"></label>
-				  
-				  <p>Time Tracker: Running</p>
-				  <p>Time Tracker: Stopped</p>
-				</section>
+			<footer id="track-footer" class="">
+				<div class="track-action">
+					<div class="switch private">
+					  <input class="checkbox" type="checkbox" id="private" />
+					  <label for="private"></label>
+					  
+					  <p>Privacy Mode: On</p>
+					  <p>Privacy Mode: Off</p>
+					</div>
+					<div class="switch">
+					  <input class="checkbox" type="checkbox" id="status" />
+					  <label for="status"></label>
+					  
+					  <p>Time Tracker: Running</p>
+					  <p>Time Tracker: Stopped</p>
+					</div>
+				</div>
 			</footer>
 		</section>
 		<section class="panel-login">
