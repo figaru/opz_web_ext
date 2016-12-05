@@ -442,7 +442,8 @@ footer section.switch input[type=checkbox].hidden{
 }
 
 .switch.private input:checked + label{
-	background-color: #EF9A9A;
+	/*background-color: #EF9A9A;*/
+	background-color: #ffd640;
 }
 
 .switch input:checked + label:after {
@@ -458,7 +459,7 @@ footer section.switch input[type=checkbox].hidden{
 }
 
 .switch.private input:checked ~ p:nth-of-type(1) {
-  color: #EF9A9A;
+  color: #ffd640;
   display: block;
 }
 

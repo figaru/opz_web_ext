@@ -30,9 +30,6 @@ let user = undefined;
 let today = new Date().getDay();
 let now = new Date().getHours();
 
-if(today === 0)
-  today = 7;
-
 //chrome.storage.local.remove(["sync", "user"]);
 
 navigator.browserSpecs = (function(){
@@ -65,6 +62,9 @@ else {
 //############################# INITIALIZE ADDON ############################################
 function init(){
   //console.log("started");
+  if(today === 0)
+    today = 7;
+
   BROWSER = navigator.browserSpecs; //Object { name: "Firefox", version: "42" }
 
   chrome.windows.getCurrent(function(data){
@@ -97,12 +97,12 @@ function init(){
         if(!LOGIN_REQUIRED)
           chrome.storage.local.get("user", function(items){
             if(items.user){
-
               SYNC_REQUIRED = false;
 
               user = items.user;
 
-              if(user['workableWeekDays'].indexOf(today) > 0 && user['workableHours'].indexOf(now) > 0){
+              if(user['workableWeekDays'].indexOf(today) >= 0 && user['workableHours'].indexOf(now) >= 0){
+                //console.log("START TRACKING");
                 TRACKING = true;
                 status();
                 chrome.notifications.create({
@@ -144,7 +144,7 @@ function status(){
 
       if(PRIVATE){
         chrome.browserAction.setBadgeBackgroundColor({
-          color: "#EF9A9A"
+          color: "#ffd640"
         });
       }else{
         chrome.browserAction.setBadgeBackgroundColor({

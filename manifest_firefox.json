@@ -1,14 +1,31 @@
 {
 
   "manifest_version": 2,
-  "name": "Opz.io Chrome",
+  "name": "Opz.io Mozilla",
   "version": "1.1",
-  "short_name": "Opzio browser time tracker",
+
   "description": "Seamless Project Management",
 
+   "applications": {
+      "gecko": {
+        "id": "mozilla@opz.io",
+          "strict_min_version": "42.0",
+          "strict_max_version": "50.*",
+          "update_url": "https://api.opzio.com/v1/updates.json"
+      }
+    },
+
+  "engines": {
+    "firefox": ">=38.0a1",
+    "fennec": ">=38.0a1"
+  },
+  "license": "MIT",
+  "keywords": [
+    "jetpack"
+  ],
+
   "browser_action": {
-    "browser_style": false,
-    "default_icon": {
+     "default_icon": {
       "19": "img/icon_main.png",
       "38": "img/icon_main.png"
     },
@@ -22,11 +39,9 @@
   },
 
   "icons": {
-    "48": "img/icon_main.png",
-    "96": "img/icon_main.png"
+    "48": "img/icon_main.png"
   },
   "background": {
-    "persistent": true,
     "scripts": ["main.js"]
   },
 
