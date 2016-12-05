@@ -327,17 +327,27 @@ chrome.tabs.onCreated.addListener(function(tab) {
 
 //working injection
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    //console.log(changeInfo);
     if(changeInfo.url){
-      console.log("injecting -> new page");
+      //console.log("injecting -> new page");
       chrome.tabs.executeScript(tab.id, {
         file: "scripts/inject.js",
         matchAboutBlank: true,
         runAt: "document_end" 
       }, function(){
-        console.log("injected");
+        //console.log("injected");
       });
     }
 });
+
+function logURL(requestDetails) {
+  console.log(requestDetails);
+}
+
+chrome.webRequest.onBeforeRequest.addListener(
+  logURL,
+  {urls: ["https://docs.google.com/*"]}
+);
 
 
 

@@ -9,7 +9,12 @@ let HAS_TRIGGERED = false;
 
 // Throttled resize function
 $(document).on('keyup keypress click scroll change', throttle(function(e){
- 	// Do responsive stuff
+ 	trigger();
+  
+}, 2000));
+
+function trigger(){
+	// Do responsive stuff
 	chrome.runtime.sendMessage({
 	    greeting: "beat"
 	}, function(response) {
@@ -19,8 +24,7 @@ $(document).on('keyup keypress click scroll change', throttle(function(e){
 	//console.log(diff(NEW_TRIGGER, LAST_TRIGGER));
 	LAST_TRIGGER = getTimestamp();
 	HAS_TRIGGERED = true;
-  
-}, 2000));
+}
 
 function throttle (func, wait) {
     return function() {
@@ -45,8 +49,7 @@ setInterval(function(){
 
 	if(time_diff.seconds >= 15 || time_diff.minutes >= 1 || time_diff.hours >= 1){
 		if(!HAS_TRIGGERED){
-			console.log(HAS_TRIGGERED);
-			console.log("Sending Heartbeat");
+			trigger();
 		}
 	}	
 
