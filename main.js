@@ -30,8 +30,6 @@ let user = undefined;
 let today = new Date().getDay();
 let now = new Date().getHours();
 
-//chrome.storage.local.remove(["sync", "user"]);
-
 navigator.browserSpecs = (function(){
     var ua= navigator.userAgent, tem, 
     M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
@@ -128,10 +126,12 @@ function init(){
 
   status();
 
-}
+}//END INIT()
 
 init();
 
+
+//STATUS update - updating browser action on track or private
 function status(){
   if (!TRACKING) {
       chrome.browserAction.setBadgeBackgroundColor({
@@ -158,6 +158,9 @@ function status(){
 }
 
 //##################################### RUNTIME MESSAGES ####################################	
+
+
+//----------------------------------- PANEL MESSAGING ------------------------------------
 var openCount = 0;
 chrome.runtime.onConnect.addListener(function (port) {
     if (port.name == "panel") {
@@ -256,7 +259,10 @@ chrome.runtime.onConnect.addListener(function (port) {
     }
 });
 
+
+//------------------------------- CONTENT SCRIPT MESSAGING ----------------------------
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
+  console.log(request);
 	if(TRACKING && !LOGIN_REQUIRED && !ICOGNITO){
 		//console.log("send beat");
 		let beat = {};
@@ -280,27 +286,59 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
 
 
 	sendResponse({
-        farewell: "received"
-    });
+    farewell: "received"
+  });
 });
 
+//##################################### TABS ##########################################
+/*chrome.tabs.onActivated.addListener(function(tab) {
+    console.log(tab);
+    console.log("tab on activated");
 
-chrome.tabs.onActivated.addListener(function() {
-    /*tabPrevious = tabNow;
+
+    chrome.tabs.get(tab.tabId, function(tab){
+      console.log(tab);
+    });
+    tabPrevious = tabNow;
     tabNow = chrome.tabs.getSelected(null, function(tab) {})
 
     chrome.runtime.sendMessage({
         greeting: "beat",
         token: token
-    }, function(response) {});*/
+    }, function(response) {});
 });
 
-chrome.tabs.onUpdated.addListener(function() {
-    /*chrome.runtime.sendMessage({
-        greeting: "beat",
-        token: token
-    }, function(response) {});*/
+chrome.tabs.onCreated.addListener(function(tab) {
+    console.log(tab);
+    console.log("tab CREATED");
+
+    if(tab.icognito)
+      return;
+
+    chrome.tabs.executeScript(tab.id, {
+      file: "content.js",
+      matchAboutBlank: true,
+      runAt: "document_end" 
+    }, function(){
+      console.log("injected");
+    });
+});*/
+
+
+//working injection
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    if(changeInfo.url){
+      console.log("injecting -> new page");
+      chrome.tabs.executeScript(tab.id, {
+        file: "scripts/inject.js",
+        matchAboutBlank: true,
+        runAt: "document_end" 
+      }, function(){
+        console.log("injected");
+      });
+    }
 });
+
 
 
 //##################################### REQUESTS ########################################
@@ -488,21 +526,11 @@ function setStorage(key, data) {
 	    }
 
 	    let store = {};
-
 		  store[key] = data;
-
-      //console.log(store);
 
 	    // Save it using the Chrome extension storage API.
 	    chrome.storage.local.set(store, function() {
 	      // Notify that we saved.
-        //console.log("data stored");
-
-        /*if(store['user']){
-          console.log("updating user");
-          user = data;
-        }*/
-
 	      resolve();
 	    });
 	});
@@ -590,7 +618,7 @@ function notificationButton(event){
   console.log(event);
 }
 
- chrome.notifications.onButtonClicked.addListener(function(notificationId, buttonIndex){
+chrome.notifications.onButtonClicked.addListener(function(notificationId, buttonIndex){
   //0 = dont reminde me
   //1 = dismiss
   console.log(buttonIndex);
@@ -599,4 +627,4 @@ function notificationButton(event){
     IGNORE_NOTIFICATIONS = true;
 
   chrome.notifications.clear(notificationId);
- });
+});
