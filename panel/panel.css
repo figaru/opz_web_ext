@@ -303,7 +303,7 @@ header .details{
 	padding: 15px;
 	border-radius: 4px;
 	border: 0;
-}form.form-login > input[type="username"], form.form-login > input[type="password"]{
+}form.form-login > input[type="email"], form.form-login > input[type="password"]{
 	background-color: #fff;
 	border: 1px solid #ddd;
 	font-size: 14px;
