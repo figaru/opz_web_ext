@@ -7,6 +7,16 @@ let LAST_TRIGGER = getTimestamp();
 let NEW_TRIGGER = 0;
 let HAS_TRIGGERED = false;
 
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
+  	console.log(request);
+
+
+	sendResponse({
+    	farewell: "received"
+  	});
+});
+
 // Throttled resize function
 $(document).on('keyup keypress click scroll change', throttle(function(e){
  	trigger();

@@ -1,5 +1,4 @@
 let ICOGNITO = chrome.extension.inIncognitoContext;
-
 let IGNORE_NOTIFICATIONS = false;
 
 let LOGIN_REQUIRED = true;
@@ -141,7 +140,7 @@ function status(){
           text: " "
       });
   } else {
-
+      tabs.injectAll();
       if(PRIVATE){
         chrome.browserAction.setBadgeBackgroundColor({
           color: "#ffd640"
@@ -323,22 +322,77 @@ chrome.tabs.onCreated.addListener(function(tab) {
       console.log("injected");
     });
 });*/
+class Tabs {
+  constructor() {
+    console.log("tabs class constructed");
+    this.addUpdateListener();
+  }
+
+  addUpdateListener(){
+    //working injection
+    chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+
+        console.log(tab);
+        if(!TRACKING || tab.icognito);
+          return;
+
+        //check to see if update is new webpage
+        if(changeInfo.url){
+          chrome.tabs.executeScript(tab.id, {
+            file: "scripts/inject.js",
+            matchAboutBlank: true,
+            runAt: "document_end" 
+          }, function(resolve, reject){
+            if(resolve)
+              console.log("Tab uppdated - injected");
+          });
+        }
+    });
+  }
+  
+  injectAll(){
+    console.log("injecting all");
+
+    //verify - Tracking enabled
+    if(!TRACKING)
+      return;
+
+    //inject content scripts to all tabs
+    chrome.tabs.query({}, function(tabs){
+      for(let i = 0; i < tabs.length; i++){
+        let tab = tabs[i];
+
+        if(tab.icognito)
+          return;
+        
+        //ignore tabs containing "chrome://"
+        if(!tab.url.contains("chrome://"))
+          chrome.tabs.executeScript(tab.id, {
+            file: "scripts/inject.js",
+            matchAboutBlank: false,
+            runAt: "document_end" 
+          }, function(){
+            //console.log("injected");
+          });
+      }//end loop
+    });
+  }
+
+  inject(tabId){
+    chrome.tabs.executeScript(tabId, {
+      file: "scripts/inject.js",
+      matchAboutBlank: true,
+      runAt: "document_end" 
+    }, function(){
+      console.log("injected");
+    });
+  }
+}
 
 
-//working injection
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    //console.log(changeInfo);
-    if(changeInfo.url){
-      //console.log("injecting -> new page");
-      chrome.tabs.executeScript(tab.id, {
-        file: "scripts/inject.js",
-        matchAboutBlank: true,
-        runAt: "document_end" 
-      }, function(){
-        //console.log("injected");
-      });
-    }
-});
+const tabs = new Tabs();
+
+//#################################### GOOGLE DOCS ####################################
 
 function logURL(requestDetails) {
   console.log(requestDetails);
@@ -638,3 +692,7 @@ chrome.notifications.onButtonClicked.addListener(function(notificationId, button
 
   chrome.notifications.clear(notificationId);
 });
+
+
+//########################################## PROTOTYPE ###############################################
+String.prototype.contains = function(it) { return this.indexOf(it) != -1; };
