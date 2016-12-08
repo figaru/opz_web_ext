@@ -7,20 +7,11 @@ let LAST_TRIGGER = getTimestamp();
 let NEW_TRIGGER = 0;
 let HAS_TRIGGERED = false;
 
-
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
-  	console.log(request);
-
-
-	sendResponse({
-    	farewell: "received"
-  	});
-});
+trigger();
 
 // Throttled resize function
 $(document).on('keyup keypress click scroll change', throttle(function(e){
  	trigger();
-  
 }, 2000));
 
 function trigger(){
@@ -28,7 +19,7 @@ function trigger(){
 	chrome.runtime.sendMessage({
 	    greeting: "beat"
 	}, function(response) {
-	    console.log(response.farewell);
+	    //console.log(response.farewell);
 	});
 
 	//console.log(diff(NEW_TRIGGER, LAST_TRIGGER));

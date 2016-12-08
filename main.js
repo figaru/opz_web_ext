@@ -133,6 +133,7 @@ init();
 //STATUS update - updating browser action on track or private
 function status(){
   if (!TRACKING) {
+      //tabs.removeUpdateListener();
       chrome.browserAction.setBadgeBackgroundColor({
           color: "#CC0000"
       });
@@ -157,7 +158,6 @@ function status(){
 }
 
 //##################################### RUNTIME MESSAGES ####################################	
-
 
 //----------------------------------- PANEL MESSAGING ------------------------------------
 var openCount = 0;
@@ -261,7 +261,7 @@ chrome.runtime.onConnect.addListener(function (port) {
 
 //------------------------------- CONTENT SCRIPT MESSAGING ----------------------------
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
-  console.log(request);
+  //console.log(request);
 	if(TRACKING && !LOGIN_REQUIRED && !ICOGNITO){
 		//console.log("send beat");
 		let beat = {};
@@ -281,60 +281,72 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
 	}else{
 
 		//console.log("NOT tracking");
+
+    /*sendResponse({
+      status: false,
+    });*/
 	}
 
-
-	sendResponse({
-    farewell: "received"
-  });
 });
+//########################################## CLASSES #################################
 
-//##################################### TABS ##########################################
-/*chrome.tabs.onActivated.addListener(function(tab) {
-    console.log(tab);
-    console.log("tab on activated");
-
-
-    chrome.tabs.get(tab.tabId, function(tab){
-      console.log(tab);
-    });
-    tabPrevious = tabNow;
-    tabNow = chrome.tabs.getSelected(null, function(tab) {})
-
-    chrome.runtime.sendMessage({
-        greeting: "beat",
-        token: token
-    }, function(response) {});
-});
-
-chrome.tabs.onCreated.addListener(function(tab) {
-    console.log(tab);
-    console.log("tab CREATED");
-
-    if(tab.icognito)
-      return;
-
-    chrome.tabs.executeScript(tab.id, {
-      file: "content.js",
-      matchAboutBlank: true,
-      runAt: "document_end" 
-    }, function(){
-      console.log("injected");
-    });
-});*/
 class Tabs {
   constructor() {
-    console.log("tabs class constructed");
+    //console.log("tabs class constructed");
     this.addUpdateListener();
+    this.addActivatedListener();
+  }
+
+  addActivatedListener(){
+    chrome.tabs.onActivated.addListener(function(activeInfo) {
+        //console.log( this.getTab(activeInfo.tabId) );
+
+        if(!TRACKING){
+          console.log("returning");
+          return;
+        }
+
+
+        chrome.tabs.get(activeInfo.tabId, function(tab){
+          //console.log(tab);
+
+          //return tab;
+
+          //ignore tabs containing "chrome://"
+          if(!tab.url.contains("chrome://")){
+            if(TRACKING && !LOGIN_REQUIRED && !ICOGNITO){
+              //console.log("send beat");
+              let beat = {};
+              let tabDomain = tab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
+              let tabTitle = tab.title;
+              let tabUrl = tab.url;
+
+              beat.title = tabTitle;
+              beat.domain = tabDomain;
+              beat.url = tabUrl;
+              beat.timestamp = Math.floor((new Date).getTime() / 1000);
+
+              //console.log(beat);
+
+              beatRequest(beat);
+
+            }
+          }
+        });
+
+        
+    });
   }
 
   addUpdateListener(){
     //working injection
     chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 
-        console.log(tab);
-        if(!TRACKING || tab.icognito);
+        //console.log(tab);
+        if(!TRACKING || tab.incognito){
+          //console.log("returning");
           return;
+        }
 
         //check to see if update is new webpage
         if(changeInfo.url){
@@ -343,30 +355,46 @@ class Tabs {
             matchAboutBlank: true,
             runAt: "document_end" 
           }, function(resolve, reject){
-            if(resolve)
-              console.log("Tab uppdated - injected");
+            //if(resolve)
+              //console.log("Tab uppdated - injected");
           });
         }
     });
   }
+
+  removeUpdateListener(){
+    chrome.tabs.onUpdated.addListener(function() {
+      //console.log("removed update listener");
+    });
+  }
+
+  static getTab(tabId){
+    chrome.tabs.get(tabId, function(tab){
+      //console.log(tab);
+
+      return tab;
+    });
+  }
   
   injectAll(){
-    console.log("injecting all");
+    //console.log("injecting all");
 
     //verify - Tracking enabled
-    if(!TRACKING)
+    if(!TRACKING){
       return;
+    }
 
     //inject content scripts to all tabs
     chrome.tabs.query({}, function(tabs){
       for(let i = 0; i < tabs.length; i++){
         let tab = tabs[i];
 
-        if(tab.icognito)
+        if(tab.incognito){
           return;
+        }
         
         //ignore tabs containing "chrome://"
-        if(!tab.url.contains("chrome://"))
+        if(!tab.url.contains("chrome://")){
           chrome.tabs.executeScript(tab.id, {
             file: "scripts/inject.js",
             matchAboutBlank: false,
@@ -374,6 +402,7 @@ class Tabs {
           }, function(){
             //console.log("injected");
           });
+        }
       }//end loop
     });
   }
@@ -384,22 +413,26 @@ class Tabs {
       matchAboutBlank: true,
       runAt: "document_end" 
     }, function(){
-      console.log("injected");
+      //console.log("injected");
     });
   }
-}
+}// END CLASS TABS
 
 
+
+// CLASS CONSTRUCTOR
 const tabs = new Tabs();
+
 
 //#################################### GOOGLE DOCS ####################################
 
-function logURL(requestDetails) {
-  console.log(requestDetails);
+function googleDocs(requestDetails) {
+
+  //console.log(requestDetails);
 }
 
 chrome.webRequest.onBeforeRequest.addListener(
-  logURL,
+  googleDocs,
   {urls: ["https://docs.google.com/*"]}
 );
 
@@ -452,7 +485,7 @@ function beatRequest(beat){
         try{
           xhr.send(data);
         }catch(e){
-          console.log(error);
+          //console.log(error);
         }
     });
 }
@@ -486,7 +519,7 @@ function syncRequest(){
 
                   resolve();
                 }).catch(() => {  
-                  console.log("failed to store");
+                  //console.log("failed to store");
                   reject();
                 });
               });
@@ -501,7 +534,7 @@ function syncRequest(){
 
               reject();
     				}else{
-    					console.log(syncResponse.message);
+    					//console.log(syncResponse.message);
               reject();
     				}
 
@@ -548,7 +581,7 @@ function loginRequest(data){
 
       						resolve();
       					}).catch(() => {	
-      						console.log("failed to store");
+      						//console.log("failed to store");
       					});
 
       				}else{
@@ -585,7 +618,7 @@ function setStorage(key, data) {
 	return new Promise(function (resolve, reject) {
 	    // Check that there's some code there.
 	    if (!key || !data) {
-	      console.log('Error: No value specified');
+	      //console.log('Error: No value specified');
 	      reject();
 	    }
 
@@ -638,14 +671,14 @@ function alarmSync(){
     syncRequest().then(syncResponse =>{
       //sync user    
     }).catch(error => {
-      console.log(error);
+      //console.log(error);
     });
   }
 }
 
 function handleAlarm(alarmInfo) {
   if(alarmInfo.name === "reminder-alarm"){
-    console.log("reminder");
+    //console.log("reminder");
     if(user['workableWeekDays'].indexOf(today) < 0 && user['workableHours'].indexOf(now) < 0 && !IGNORE_NOTIFICATIONS){
       chrome.notifications.create({
           "type": "basic",
@@ -679,20 +712,19 @@ chrome.alarms.onAlarm.addListener(handleAlarm);
 
 //########################################## NOTIFICATIONS #############################################
 function notificationButton(event){
-  console.log(event);
+  //console.log(event);
 }
 
 chrome.notifications.onButtonClicked.addListener(function(notificationId, buttonIndex){
   //0 = dont reminde me
   //1 = dismiss
-  console.log(buttonIndex);
+  //console.log(buttonIndex);
 
   if(buttonIndex === 0)
     IGNORE_NOTIFICATIONS = true;
 
   chrome.notifications.clear(notificationId);
 });
-
 
 //########################################## PROTOTYPE ###############################################
 String.prototype.contains = function(it) { return this.indexOf(it) != -1; };

@@ -25,6 +25,7 @@
     "48": "img/icon_main.png",
     "96": "img/icon_main.png"
   },
+
   "background": {
     "persistent": true,
     "scripts": ["main.js"]

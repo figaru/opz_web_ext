@@ -1,19 +1,43 @@
+//##################################### TABS ##########################################
+let SCRIPT = chrome.extension.getURL("scripts/inject.js");
+
 class Tabs {
-
-
   constructor() {
-    console.log("tabs class constructed");
+    //console.log("tabs class constructed");
+    this.addUpdateListener();
+  }
+
+  addUpdateListener(){
+    //working injection
+    chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+
+        //console.log(tab);
+        if(!TRACKING || tab.icognito);
+          return;
+
+        //check to see if update is new webpage
+        if(changeInfo.url){
+          chrome.tabs.executeScript(tab.id, {
+            file: SCRIPT,
+            matchAboutBlank: true,
+            runAt: "document_end" 
+          }, function(resolve, reject){
+            if(resolve)
+              console.log("Tab uppdated - injected");
+          });
+        }
+    });
+  }
+
+  removeUpdateListener(){
+    chrome.tabs.onUpdated.addListener(function() {
+      console.log("removed update listener");
+    });
   }
   
-  /*get area() {
-    return this.calcArea();
-  }
-
-  calcArea() {
-    return this.height * this.width;
-  }*/
-
   injectAll(){
+    //console.log("injecting all");
+
     //verify - Tracking enabled
     if(!TRACKING)
       return;
@@ -22,18 +46,30 @@ class Tabs {
     chrome.tabs.query({}, function(tabs){
       for(let i = 0; i < tabs.length; i++){
         let tab = tabs[i];
+
+        if(tab.icognito)
+          return;
         
         //ignore tabs containing "chrome://"
         if(!tab.url.contains("chrome://"))
-          var p1 = chrome.tabs.executeScript(tab.id, {
-            file: "scripts/inject.js",
+          chrome.tabs.executeScript(tab.id, {
+            file: SCRIPT,
             matchAboutBlank: false,
             runAt: "document_end" 
-          }, function(resolve, reject){
-            if(reject)
-              console.log(reject)
+          }, function(){
+            //console.log("injected");
           });
       }//end loop
     });
   }
-}
+
+  inject(tabId){
+    chrome.tabs.executeScript(tabId, {
+      file: SCRIPT,
+      matchAboutBlank: true,
+      runAt: "document_end" 
+    }, function(){
+      console.log("injected");
+    });
+  }
+}// END CLASS TABS
