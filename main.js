@@ -29,6 +29,8 @@ let user = undefined;
 let today = new Date().getDay();
 let now = new Date().getHours();
 
+let doc_trigger = undefined;
+
 navigator.browserSpecs = (function(){
     var ua= navigator.userAgent, tem, 
     M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
@@ -55,6 +57,44 @@ navigator.browserSpecs = (function(){
 else {
     // Do something for all other browsers.
 }*/
+
+//#################################### GOOGLE DOCS ####################################
+
+function googleDocs(req) {
+
+  //console.log(req);
+
+  var stamp = new Date(req.timeStamp).getTime();
+
+  //console.log(doc_trigger);
+
+  if(doc_trigger){
+
+    let time_diff = diff(stamp, doc_trigger);
+
+    if(time_diff.seconds >= 15 || time_diff.minutes >= 1 || time_diff.hours >= 1){
+      chrome.tabs.get(req.tabId, function(tab){
+        //console.log(tab);
+        beat(tab);
+      });
+      doc_trigger = undefined;
+    }else{
+      //console.log("not time yet");
+    }
+
+  }else{
+    //console.log("doc trigger empty");
+    doc_trigger = stamp;
+  }
+
+
+}
+
+chrome.webRequest.onBeforeRequest.addListener(
+  googleDocs,
+  {urls: ["https://docs.google.com/*"]}
+);
+
 
 //############################# INITIALIZE ADDON ############################################
 function init(){
@@ -261,33 +301,41 @@ chrome.runtime.onConnect.addListener(function (port) {
 
 //------------------------------- CONTENT SCRIPT MESSAGING ----------------------------
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
-  //console.log(request);
-	if(TRACKING && !LOGIN_REQUIRED && !ICOGNITO){
-		//console.log("send beat");
-		let beat = {};
-		let tabDomain = sender.tab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
-        let tabTitle = sender.tab.title;
-        let tabUrl = sender.tab.url;
-
-        beat.title = tabTitle;
-        beat.domain = tabDomain;
-        beat.url = tabUrl;
-        beat.timestamp = Math.floor((new Date).getTime() / 1000);
-
-        //console.log(beat);
-
-        beatRequest(beat);
-
-	}else{
-
-		//console.log("NOT tracking");
-
-    /*sendResponse({
-      status: false,
-    });*/
-	}
-
+  beat(sender.tab);
 });
+
+function beat(tab){
+  chrome.windows.get(tab.windowId, function(info){
+    if(info.focused){
+      if(TRACKING && !LOGIN_REQUIRED && !ICOGNITO && tab.active && tab.selected){
+        //console.log("send beat");
+        let beat = {};
+        let tabDomain = tab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
+            let tabTitle = tab.title;
+            let tabUrl = tab.url;
+
+            beat.title = tabTitle;
+            beat.domain = tabDomain;
+            beat.url = tabUrl;
+            beat.timestamp = Math.floor((new Date).getTime() / 1000);
+
+            //console.log(beat);
+
+            beatRequest(beat);
+
+      }else{
+
+        //console.log("NOT tracking");
+
+        /*sendResponse({
+          status: false,
+        });*/
+      }
+    }else{
+      //console.log("not focused - ignore");
+    }
+  });
+}
 //########################################## CLASSES #################################
 
 class Tabs {
@@ -302,7 +350,7 @@ class Tabs {
         //console.log( this.getTab(activeInfo.tabId) );
 
         if(!TRACKING){
-          console.log("returning");
+          //console.log("returning");
           return;
         }
 
@@ -333,7 +381,6 @@ class Tabs {
             }
           }
         });
-
         
     });
   }
@@ -395,6 +442,7 @@ class Tabs {
         
         //ignore tabs containing "chrome://"
         if(!tab.url.contains("chrome://")){
+          //console.log(tab);
           chrome.tabs.executeScript(tab.id, {
             file: "scripts/inject.js",
             matchAboutBlank: false,
@@ -424,23 +472,14 @@ class Tabs {
 const tabs = new Tabs();
 
 
-//#################################### GOOGLE DOCS ####################################
-
-function googleDocs(requestDetails) {
-
-  //console.log(requestDetails);
-}
-
-chrome.webRequest.onBeforeRequest.addListener(
-  googleDocs,
-  {urls: ["https://docs.google.com/*"]}
-);
-
-
-
 //##################################### REQUESTS ########################################
 function beatRequest(beat){
     // Promises require two functions: one for success, one for failure
+    if(beat['url'].contains("chrome://")){
+      console.log("ignore");
+      return;
+    }
+
     return new Promise(function (resolve, reject) {
         var xhr = new XMLHttpRequest();
 
@@ -458,12 +497,14 @@ function beatRequest(beat){
 	        }
 	    };
 
-	    //console.log(data);
+	    console.log(data);
 
 	    data = JSON.stringify(data); //Convert to actual Json
 
         xhr.open('POST', API_BEAT, true);
         xhr.setRequestHeader("Content-type", "application/json");
+
+        xhr.timeout = 2000;
 
         xhr.onload = () => {
             if (xhr.status === 200) {
@@ -728,3 +769,43 @@ chrome.notifications.onButtonClicked.addListener(function(notificationId, button
 
 //########################################## PROTOTYPE ###############################################
 String.prototype.contains = function(it) { return this.indexOf(it) != -1; };
+
+//########################################## DATE DIFF ###############################################
+function DateDiff(date1, date2) {
+    this.days = null;
+    this.hours = null;
+    this.minutes = null;
+    this.seconds = null;
+    this.date1 = date1;
+    this.date2 = date2;
+
+    this.init();
+  }
+
+  DateDiff.prototype.init = function() {
+    var data = new DateMeasure(this.date1 - this.date2);
+    this.days = data.days;
+    this.hours = data.hours;
+    this.minutes = data.minutes;
+    this.seconds = data.seconds;
+  };
+
+  function DateMeasure(ms) {
+    var d, h, m, s;
+    s = Math.floor(ms / 1000);
+    m = Math.floor(s / 60);
+    s = s % 60;
+    h = Math.floor(m / 60);
+    m = m % 60;
+    d = Math.floor(h / 24);
+    h = h % 24;
+    
+    this.days = d;
+    this.hours = h;
+    this.minutes = m;
+    this.seconds = s;
+  };
+
+  function diff(date1, date2) {
+    return new DateDiff(date1, date2);
+  };
