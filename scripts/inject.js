@@ -48,14 +48,16 @@ function throttle (func, wait) {
 }
 
 $(function(){
-	trigger();
+	//trigger();
+
+	//console.log("injected");
 
 	interval = setInterval(timer, 10000);
 
 
 	// Throttled resize function
 	$(this).on('keyup keypress click scroll change', throttle(function(e){ 	
-		trigger();
+		//trigger();
 	}, 4000));
 });
 
@@ -65,11 +67,11 @@ function timer(){
 
 	let time_diff = diff(NEW_TRIGGER, LAST_TRIGGER);
 
-	if(time_diff.seconds >= 15 || time_diff.minutes >= 1 || time_diff.hours >= 1){
+	if(time_diff.seconds >= 30 || time_diff.minutes >= 1 || time_diff.hours >= 1){
 		if(!HAS_TRIGGERED){
 			clearInterval(interval);
 			trigger();
-			interval = setInterval(timer, 10000);
+			interval = setInterval(timer, 5000);
 		}
 	}
 }	

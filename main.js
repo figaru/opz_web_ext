@@ -1,3 +1,10 @@
+let DEBUG = {
+  bool: false,
+  sync: "http://localhost:3030/v1/sync",
+  auth: "http://localhost:3030/v1/auth",
+  beat: "http://localhost:3030/v1/logs",
+};
+
 let ICOGNITO = chrome.extension.inIncognitoContext;
 let IGNORE_NOTIFICATIONS = false;
 
@@ -14,6 +21,7 @@ let CONNECTION_ERROR = false;
 const API_SYNC = "https://api.opz.io/v1/sync";
 const API_AUTH = "https://api.opz.io/v1/auth";
 const API_BEAT = "https://api.opz.io/v1/logs";
+
 
 let TRACKING = false;
 let PRIVATE = false;
@@ -64,7 +72,7 @@ function googleDocs(req) {
 
   //console.log(req);
 
-  var stamp = new Date(req.timeStamp).getTime();
+  var stamp = new Date().getTime();
 
   //console.log(doc_trigger);
 
@@ -72,7 +80,8 @@ function googleDocs(req) {
 
     let time_diff = diff(stamp, doc_trigger);
 
-    if(time_diff.seconds >= 15 || time_diff.minutes >= 1 || time_diff.hours >= 1){
+    if(time_diff.seconds >= 8){
+      //console.log("trigger docs");
       chrome.tabs.get(req.tabId, function(tab){
         //console.log(tab);
         beat(tab);
@@ -92,7 +101,7 @@ function googleDocs(req) {
 
 chrome.webRequest.onBeforeRequest.addListener(
   googleDocs,
-  {urls: ["https://docs.google.com/*"]}
+  {urls: ["*://docs.google.com/*", "*://mail.google.com/*"]}
 );
 
 
@@ -155,7 +164,7 @@ function init(){
             }
           });     
       }).catch(error => {
-        console.log(error);
+        //console.log(error);
       });
 
     }else{
@@ -207,7 +216,7 @@ chrome.runtime.onConnect.addListener(function (port) {
 
         //console.log("panel opening");
         if(CONNECTION_ERROR){
-        	console.log("Connection error");
+        	//console.log("Connection error");
         	port.postMessage({action: "error", msg: AUTH_STATE['message'] });
         	return;
         }
@@ -260,7 +269,7 @@ chrome.runtime.onConnect.addListener(function (port) {
               }
 
     				}).catch(error => {
-    					console.log(error);
+    					//console.log(error);
     				});
       		}else{
       			port.postMessage({action: "data", data: user, tracking: TRACKING, private: PRIVATE});
@@ -394,17 +403,23 @@ class Tabs {
           //console.log("returning");
           return;
         }
-
         //check to see if update is new webpage
         if(changeInfo.url){
-          chrome.tabs.executeScript(tab.id, {
-            file: "scripts/inject.js",
-            matchAboutBlank: true,
-            runAt: "document_end" 
-          }, function(resolve, reject){
-            //if(resolve)
-              //console.log("Tab uppdated - injected");
-          });
+          if(changeInfo.url.indexOf("mail.google.com") >= 0 || changeInfo.url.indexOf("docs.google.com") >= 0){
+            //if "google" in url .... use requests
+            //console.log(tab);
+            //console.log("send beat google changed");
+            beat(tab);
+          }else{
+            chrome.tabs.executeScript(tab.id, {
+              file: "scripts/inject.js",
+              matchAboutBlank: false,
+              runAt: "document_end" 
+            }, function(resolve, reject){
+              //if(resolve)
+                //console.log("Tab uppdated - injected");
+            });
+          }
         }
     });
   }
@@ -476,7 +491,7 @@ const tabs = new Tabs();
 function beatRequest(beat){
     // Promises require two functions: one for success, one for failure
     if(beat['url'].contains("chrome://")){
-      console.log("ignore");
+      //console.log("ignore");
       return;
     }
 
@@ -497,11 +512,18 @@ function beatRequest(beat){
 	        }
 	    };
 
-	    console.log(data);
+	    //console.log(data);
 
 	    data = JSON.stringify(data); //Convert to actual Json
 
-        xhr.open('POST', API_BEAT, true);
+
+        if(DEBUG.bool){
+          //if debug mode change to local server
+          xhr.open('POST', DEBUG.beat, true);
+        }else{
+          xhr.open('POST', API_BEAT, true);
+        }
+
         xhr.setRequestHeader("Content-type", "application/json");
 
         xhr.timeout = 2000;
@@ -720,7 +742,7 @@ function alarmSync(){
 function handleAlarm(alarmInfo) {
   if(alarmInfo.name === "reminder-alarm"){
     //console.log("reminder");
-    if(user['workableWeekDays'].indexOf(today) < 0 && user['workableHours'].indexOf(now) < 0 && !IGNORE_NOTIFICATIONS){
+    if(user['workableWeekDays'].indexOf(today) < 0 || user['workableHours'].indexOf(now) < 0 && !IGNORE_NOTIFICATIONS){
       chrome.notifications.create({
           "type": "basic",
           "iconUrl": chrome.extension.getURL("img/icon_main.png"),
