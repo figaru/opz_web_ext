@@ -1,31 +1,14 @@
 {
 
   "manifest_version": 2,
-  "name": "Opz.io Mozilla",
-  "version": "1.1.2",
-
+  "name": "Opz.io Chrome",
+  "version": "1.1.9",
+  "short_name": "Opzio browser time tracker",
   "description": "Seamless Project Management",
 
-   "applications": {
-      "gecko": {
-        "id": "mozilla@opz.io",
-          "strict_min_version": "42.0",
-          "strict_max_version": "50.*",
-          "update_url": "https://api.opzio.com/v1/updates.json"
-      }
-    },
-
-  "engines": {
-    "firefox": ">=38.0a1",
-    "fennec": ">=38.0a1"
-  },
-  "license": "MIT",
-  "keywords": [
-    "jetpack"
-  ],
-
   "browser_action": {
-     "default_icon": {
+    "browser_style": false,
+    "default_icon": {
       "19": "img/icon_main.png",
       "38": "img/icon_main.png"
     },
@@ -39,19 +22,15 @@
   },
 
   "icons": {
-    "48": "img/icon_main.png"
+    "48": "img/icon_main.png",
+    "96": "img/icon_main.png"
   },
+
   "background": {
+    "persistent": true,
     "scripts": ["main.js"]
   },
 
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["inject.js"],
-      "run_at": "document_end" 
-    }
-  ],
 
   "web_accessible_resources": [
     "main.js"
@@ -72,7 +51,8 @@
     "webRequestBlocking",
     "https://api.opz.io/*", 
     "https://opz.io/*",
-    "http://*/*"
+    "http://*/*",
+    "<all_urls>"
   ]
 
 }
