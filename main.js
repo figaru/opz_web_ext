@@ -3,6 +3,7 @@ let DEBUG = {
   sync: "http://localhost:3030/v1/sync",
   auth: "http://localhost:3030/v1/auth",
   beat: "http://localhost:3030/v1/logs",
+  token: "",
 };
 
 let ICOGNITO = chrome.extension.inIncognitoContext;
@@ -66,6 +67,12 @@ else {
     // Do something for all other browsers.
 }*/
 
+
+function debug(pin){
+  if(pin == "123")
+    chrome.tabs.create({ url: chrome.extension.getURL("debug/debug.html") });
+}
+
 //#################################### GOOGLE DOCS ####################################
 
 function googleDocs(req) {
@@ -82,11 +89,13 @@ function googleDocs(req) {
 
     if(time_diff.seconds >= 8){
       //console.log("trigger docs");
-      chrome.tabs.get(req.tabId, function(tab){
-        //console.log(tab);
-        beat(tab);
-      });
-      doc_trigger = undefined;
+      if(req.tabId){
+        chrome.tabs.get(req.tabId, function(tab){
+          //console.log(tab);
+          beat(tab);
+        });
+        doc_trigger = undefined;
+      }
     }else{
       //console.log("not time yet");
     }
@@ -101,8 +110,22 @@ function googleDocs(req) {
 
 chrome.webRequest.onBeforeRequest.addListener(
   googleDocs,
-  {urls: ["*://docs.google.com/*", "*://mail.google.com/*"]}
+  {urls: ["*://docs.google.com/*"]}
 );
+
+//#################################### GOOGLE MAIL ####################################
+
+/*function googleMail(req) {
+
+  
+
+
+}
+
+chrome.webRequest.onBeforeRequest.addListener(
+  googleMail,
+  {urls: ["*://mail.google.com/*"]}
+);*/
 
 
 //############################# INITIALIZE ADDON ############################################
@@ -310,7 +333,31 @@ chrome.runtime.onConnect.addListener(function (port) {
 
 //------------------------------- CONTENT SCRIPT MESSAGING ----------------------------
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
-  beat(sender.tab);
+  if(request.greeting === "gmail"){
+    var tab = sender.tab;
+    var data = request.data;
+
+    if(data.action === "open"){
+      tab.title = data.subject + " " + data.from + " " + data.from_email;
+    }else if(data.action === "draft"){
+      tab.title = data.subject + " " + data.to;
+    }else if(data.action === "send"){
+      tab.title = data.subject + " " + data.to;
+    }
+
+    //console.log(tab);
+    beat(tab); 
+  }else if(request.greeting === "beat"){
+    beat(sender.tab);
+  }else if(request.greeting === "hangouts"){
+    //console.log(sender);
+    //console.log(request.data);
+    request.data.active = sender.tab.active;
+    request.data.selected = sender.tab.selected;
+    request.data.windowId = sender.tab.windowId;
+
+    beat(request.data);
+  }
 });
 
 function beat(tab){
@@ -327,8 +374,6 @@ function beat(tab){
             beat.domain = tabDomain;
             beat.url = tabUrl;
             beat.timestamp = Math.floor((new Date).getTime() / 1000);
-
-            //console.log(beat);
 
             beatRequest(beat);
 
@@ -370,7 +415,9 @@ class Tabs {
           //return tab;
 
           //ignore tabs containing "chrome://"
-          if(!tab.url.contains("chrome://")){
+          if(tab.url.indexOf("chrome://") >= 0 || tab.url.indexOf("chrome-extension://") >= 0){
+              //console.log("ignore");
+          }else{
             if(TRACKING && !LOGIN_REQUIRED && !ICOGNITO){
               //console.log("send beat");
               let beat = {};
@@ -405,16 +452,16 @@ class Tabs {
         }
         //check to see if update is new webpage
         if(changeInfo.url){
-          if(changeInfo.url.indexOf("mail.google.com") >= 0 || changeInfo.url.indexOf("docs.google.com") >= 0){
+          if(/*changeInfo.url.indexOf("mail.google.com") >= 0 ||*/ changeInfo.url.indexOf("docs.google.com") >= 0 || changeInfo.url.indexOf("chrome://") >= 0 || changeInfo.url.indexOf("chrome-extension://") >= 0){
             //if "google" in url .... use requests
             //console.log(tab);
             //console.log("send beat google changed");
-            beat(tab);
+            //beat(tab);
           }else{
             chrome.tabs.executeScript(tab.id, {
               file: "scripts/inject.js",
               matchAboutBlank: false,
-              runAt: "document_end" 
+              runAt: "document_end"
             }, function(resolve, reject){
               //if(resolve)
                 //console.log("Tab uppdated - injected");
@@ -489,6 +536,12 @@ const tabs = new Tabs();
 
 //##################################### REQUESTS ########################################
 function beatRequest(beat){
+    //send debug beat
+    if(DEBUG.bool){
+          //if debug mode change to local server
+          beatDebug(beat);
+    }
+
     // Promises require two functions: one for success, one for failure
     if(beat['url'].contains("chrome://")){
       //console.log("ignore");
@@ -512,17 +565,12 @@ function beatRequest(beat){
 	        }
 	    };
 
-	    //console.log(data);
+	    console.log(data);
 
 	    data = JSON.stringify(data); //Convert to actual Json
 
 
-        if(DEBUG.bool){
-          //if debug mode change to local server
-          xhr.open('POST', DEBUG.beat, true);
-        }else{
-          xhr.open('POST', API_BEAT, true);
-        }
+        xhr.open('POST', API_BEAT, true);
 
         xhr.setRequestHeader("Content-type", "application/json");
 
@@ -551,6 +599,69 @@ function beatRequest(beat){
           //console.log(error);
         }
     });
+}
+
+function beatDebug(beat){
+
+    // Promises require two functions: one for success, one for failure
+    if(beat['url'].contains("chrome://")){
+      //console.log("ignore");
+      return;
+    }
+
+    var xhr = new XMLHttpRequest();
+
+    var data = {
+      'token': user['token'],
+      'data': {
+          'enforcePrivate': PRIVATE,
+          'browser': BROWSER['name'],
+          'domain': beat['domain'],
+          'url': beat['url'],
+          'title': beat['title'],
+          'time': beat['timestamp']
+
+      }
+    };
+
+
+    if(DEBUG.token != ""){
+      data.token = DEBUG.token;
+    }
+
+    //console.log(data);
+
+    data = JSON.stringify(data); //Convert to actual Json
+
+
+    xhr.open('POST', DEBUG.beat, true);
+
+    xhr.setRequestHeader("Content-type", "application/json");
+
+    xhr.timeout = 2000;
+
+    xhr.onload = () => {
+        if (xhr.status === 200) {
+            // We can resolve the promise
+            //console.log(xhr.response);
+            //console.log()
+        } else {
+            // It's a failure, so let's reject the promise
+            console.log(xhr);
+        }
+
+    }
+
+    xhr.onerror = () => {
+        // It's a failure, so let's reject the promise
+        console.log("Unable to load RSS");
+    };
+
+    try{
+      xhr.send(data);
+    }catch(e){
+      //console.log(error);
+    }
 }
 
 function syncRequest(){
@@ -633,6 +744,8 @@ function loginRequest(data){
               // We can resolve the promise
 
               let response = JSON.parse(xhr.response);
+
+              console.log(response);
       				if(!response.error){
 
       					setStorage("sync", response).then(() => {
@@ -742,18 +855,21 @@ function alarmSync(){
 function handleAlarm(alarmInfo) {
   if(alarmInfo.name === "reminder-alarm"){
     //console.log("reminder");
-    if(user['workableWeekDays'].indexOf(today) < 0 || user['workableHours'].indexOf(now) < 0 && !IGNORE_NOTIFICATIONS){
-      chrome.notifications.create({
-          "type": "basic",
-          "iconUrl": chrome.extension.getURL("img/icon_main.png"),
-          "title": "Tracking Reminder",
-          "message": "Your are tracking in a non-workable time.",
-          "buttons":[
-            {"title": "Don't remind me"},
-            {"title": "Dismiss"}
-          ]
-      });
+    if(TRACKING && !ICOGNITO){
+      if(user['workableWeekDays'].indexOf(today) < 0 || user['workableHours'].indexOf(now) < 0 && !IGNORE_NOTIFICATIONS){
+        chrome.notifications.create({
+            "type": "basic",
+            "iconUrl": chrome.extension.getURL("img/icon_main.png"),
+            "title": "Tracking Reminder",
+            "message": "Your are logging outside your tracking period, the system will not store these times. ",
+            "buttons":[
+              {"title": "Don't remind me"},
+              {"title": "Review your privacy settings."},
+            ]
+        });
+      }
     }
+
   }else if(alarmInfo.name === "sync-alarm"){
     alarmSync();
   }
@@ -785,6 +901,8 @@ chrome.notifications.onButtonClicked.addListener(function(notificationId, button
 
   if(buttonIndex === 0)
     IGNORE_NOTIFICATIONS = true;
+  else if(buttonIndex === 1)
+    chrome.tabs.create({ url: "https://opz.io/" });
 
   chrome.notifications.clear(notificationId);
 });
