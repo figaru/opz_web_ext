@@ -26,7 +26,6 @@ window.addEventListener('message', function(event) {
 
 	// Only accept messages that we know are ours
 	if (typeof message !== 'object' || message === null || !message.isHangouts) {
-		return;
 	}else{
 		/*if(!hangouts){
 			//console.log("hangouts: " + message.isHangouts);
@@ -56,9 +55,8 @@ window.addEventListener('message', function(event) {
 
 	// Only accept messages that we know are ours
 	if (typeof message !== 'object' || message === null || !message.hangouts) {
-		return;
 	}else{
-		console.log(message.hangouts.msg);
+		//console.log(message.hangouts.msg);
 	}
 
 	//console.log(message);

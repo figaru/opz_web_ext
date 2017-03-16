@@ -8,7 +8,7 @@ var hangouts = false;
 
 function sendMessage(gmailbeat){
   //console.log(gmailbeat);
-  window.postMessage({gmailbeat: gmailbeat}, '*');
+  window.postMessage({greeting: "gmail", gmailbeat: gmailbeat}, '*');
 }
 
 function refresh(f) {
@@ -36,119 +36,118 @@ refresh(main);
 //INterval check every 5 seconds for click, scroll and key events
 setInterval(function() {
     onObserver();
-
-/*    try{
-      if(gmail.chat.is_hangouts()){
-        var iframe = $("iframe.a7A")[0];
-
-        //console.log(iframe);
-
-        var doc = null;
-           if(iframe.contentDocument) doc = iframe.contentDocument;
-           else if(iframe.contentWindow) doc = iframe.contentWindow.document;
-           else if(iframe.document) doc = iframe.document;
-         
-        if(doc == null) throw "Document not initialized";
-
-        doc.open();
-        var script   = doc.createElement("script");
-        script.type  = "text/javascript";
-        // script.src = 'http://www.abc/static/st.v2.js';
-        script.text  = "alert('voila!');"
-        doc.appendChild(script);
-        doc.close();
-
-        hangouts = true;
-
-        //iframe.appendTo('head');
-
-        window.postMessage({isHangouts: true}, '*');
+    try{
+      now = gmail.get.current_page();
+      if(now != oldPage){
+        if(gmail.get.current_page() != null){
+          oldPage = now;
+          sendMessage(returnCurrentPage("location changed"));
+        } else{}//do nothing;
       }
     }catch(e){
-      console.log(e);
-    }*/
-    /*now = gmail.get.current_page();
-    if(now != oldPage){
-      if(gmail.get.current_page() != null){
-        oldPage = now;
-        sendMessage(returnCurrentPage("location changed"));
-      } else{}//do nothing;
+
     }
+
     if(didDraft) {
         didDraft = false;
         //sendHeartBeat(composeBeat);
         sendMessage(composeDraftBeat);
-    }*/
+    }
 }, 5000);
 
+function throttle (func, wait) {
+    return function() {
+        var that = this,
+            args = [].slice(arguments);
+
+        clearTimeout(func._throttleTimeout);
+
+        func._throttleTimeout = setTimeout(function() {
+            func.apply(that, args);
+        }, wait);
+    };
+}
+
+$(function(){
+  // Throttled resize function
+  $(this).on('keyup keypress click scroll change', throttle(function(e){  
+    //trigger();
+    sendMessage(returnCurrentPage("event"));
+  }, 4000));
+});
+
+
+
 function onObserver(){
-      try{
-        gmail.observe.off();
+  try{
+    gmail.observe.off();
+
+    //on email open - Gmail
+    gmail.observe.on("open_email", function(id, url, body, xhr) {    
+      var data = gmail.get.email_data(id).last_email;
+      var threadid = gmail.get.email_data(id).thread_id;//get email thread id
+
+      /*console.log(openEmailDetails(id, data));
+      console.log(gmail.get.email_data(id));*/
+      sendMessage(openEmailDetails(id, data, "open"))
+    });
+
+    gmail.observe.on("save_draft", function(id, url, body, data, xhr) {    
+      //console.log(sendEmailDetails(body));
+      if(sendEmailDetails(body).to != "" || sendEmailDetails(body).subject != ""){
+        composeDraftBeat = sendEmailDetails(body, "draft");
+        lastDraftId = id;
+        didDraft = true;
+        sendMessage(composeDraftBeat);
+      } else{
+        //do nothing if recipient OR subject not available
+      }
+    });
+
+    gmail.observe.before("send_message", function(id, url, body, data, xhr) {    
+      //console.log(sendEmailDetails(body));
+      if(id == lastDraftId && didDraft == true){
+        didDraft = false;
+        sendMessage(sendEmailDetails(body, "send")); 
+      }else{
+        sendMessage(sendEmailDetails(body, "send")); 
+      }
+    });
+
+    gmail.observe.after("refresh", function(id, url, body, data, xhr) {    
+        //console.log(gmail.get.current_page());
+        now = gmail.get.current_page();
+        if(now != oldPage){
+          if(gmail.get.current_page() != null){
+            oldPage = now;
+            sendMessage(returnCurrentPage("event"));
+          } else{}//do nothing;
+        }
+    });
+
+    //############################################################################################################################
+
+    /*// DOM observers
+    gmail.observe.on("compose", function(compose, type) {
+      // type can be compose, reply or forward
+      console.log('api.dom.compose object:', compose, 'type is:', type );  // gmail.dom.compose object
+    });
+    */
+    //gmail.observe.on('view_thread', function(obj) {
+      //console.log('conversation thread opened', obj); // gmail.dom.thread object
+    //});
+    /*
+    gmail.observe.on('load_email_menu', function(match) {
+      console.log('Menu loaded',match);
+
+      // insert a new element into the menu
+      $('<div />').addClass('J-N-Jz')
+          .html('New element')
+          .appendTo(match);
+    });*/
+  }catch(e){
     
-        //on email open - Gmail
-        gmail.observe.on("open_email", function(id, url, body, xhr) {    
-          var data = gmail.get.email_data(id).last_email;
-          var threadid = gmail.get.email_data(id).thread_id;//get email thread id
-
-          /*console.log(openEmailDetails(id, data));
-          console.log(gmail.get.email_data(id));*/
-          sendMessage(openEmailDetails(id, data, "open"))
-        });
-
-        gmail.observe.on("save_draft", function(id, url, body, data, xhr) {    
-          //console.log(sendEmailDetails(body));
-          if(sendEmailDetails(body).to != "" || sendEmailDetails(body).subject != ""){
-            composeDraftBeat = sendEmailDetails(body, "draft");
-            lastDraftId = id;
-            didDraft = true;
-            sendMessage(composeDraftBeat);
-          } else{
-            //do nothing if recipient OR subject not available
-          }
-        });
-
-        gmail.observe.before("send_message", function(id, url, body, data, xhr) {    
-          //console.log(sendEmailDetails(body));
-          if(id == lastDraftId && didDraft == true){
-            didDraft = false;
-            sendMessage(sendEmailDetails(body, "send")); 
-          }else{
-            sendMessage(sendEmailDetails(body, "send")); 
-          }
-        });
-
-        gmail.observe.after("refresh", function(id, url, body, data, xhr) {    
-            //console.log(gmail.get.current_page());
-            now = gmail.get.current_page();
-            if(now != oldPage){
-              if(gmail.get.current_page() != null){
-                oldPage = now;
-                sendMessage(returnCurrentPage("location changed"));
-              } else{}//do nothing;
-            }
-        });
-
-        //############################################################################################################################
-
-        /*// DOM observers
-        gmail.observe.on("compose", function(compose, type) {
-          // type can be compose, reply or forward
-          console.log('api.dom.compose object:', compose, 'type is:', type );  // gmail.dom.compose object
-        });
-        */
-        gmail.observe.on('view_thread', function(obj) {
-          console.log('conversation thread opened', obj); // gmail.dom.thread object
-        });
-        /*
-        gmail.observe.on('load_email_menu', function(match) {
-          console.log('Menu loaded',match);
-
-          // insert a new element into the menu
-          $('<div />').addClass('J-N-Jz')
-              .html('New element')
-              .appendTo(match);
-        });*/
-      }catch(e){}
+  }
 }
 
 function accessedGmail(){

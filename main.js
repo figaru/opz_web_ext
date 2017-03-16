@@ -25,8 +25,15 @@ let BROWSER = undefined;
 //sync credentials and user details
 let sync = undefined;
 let user = undefined;
-let DEBUG = undefined;
+let DEBUG = {
+  bool: false,
+  sync: "http://localhost:3030/v1/sync",
+  auth: "http://localhost:3030/v1/auth",
+  beat: "http://localhost:3030/v1/logs",
+  token: "",
+};
 let goDebug = false;
+
 
 //test data - workable hours and days
 let today = new Date().getDay();
@@ -415,7 +422,7 @@ chrome.runtime.onConnect.addListener(function (port) {
     }else if(port.name === "options"){
       port.onMessage.addListener(function(request, sender){
         if(request.action === "data"){
-          port.postMessage({action: "data", data: {name: user.name, company: user.company, token: user.token } });
+            port.postMessage({action: "data", data: {name: user.name, company: user.company, token: user.token } });
         }else if(request.action === "check"){
           port.postMessage({action: "check", debugMode: goDebug});
         }
@@ -426,6 +433,7 @@ chrome.runtime.onConnect.addListener(function (port) {
 
 //------------------------------- CONTENT SCRIPT MESSAGING ----------------------------
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
+  //console.log(request);
   if(request.greeting === "gmail"){
     var tab = sender.tab;
     var data = request.data;
@@ -436,6 +444,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
       tab.title = data.subject + " " + data.to;
     }else if(data.action === "send"){
       tab.title = data.subject + " " + data.to;
+    }else if(data.action === "event"){
+      tab.title = data.current_page;
     }
 
     //console.log(tab);
@@ -629,11 +639,6 @@ const tabs = new Tabs();
 
 //##################################### REQUESTS ########################################
 function beatRequest(beat){
-    //send debug beat
-    if(DEBUG.bool){
-          //if debug mode change to local server
-          beatDebug(beat);
-    }
 
     // Promises require two functions: one for success, one for failure
     if(beat['url'].contains("chrome://")){
@@ -641,60 +646,70 @@ function beatRequest(beat){
       return;
     }
 
+    //send debug beat
+    if(DEBUG.bool){
+          //if debug mode change to local server
+          beatDebug(beat);
+    }
+
     return new Promise(function (resolve, reject) {
-        var xhr = new XMLHttpRequest();
+      var xhr = new XMLHttpRequest();
 
 
-        var data = {
-	        'token': user['token'],
-	        'data': {
-              'enforcePrivate': PRIVATE,
-              'browser': BROWSER['name'],
-	            'domain': beat['domain'],
-	            'url': beat['url'],
-	            'title': beat['title'],
-	            'time': beat['timestamp']
+      var data = {
+        'token': user['token'],
+        'data': {
+            'enforcePrivate': PRIVATE,
+            'browser': BROWSER['name'],
+            'domain': beat['domain'],
+            'url': beat['url'],
+            'title': beat['title'],
+            'time': beat['timestamp']
 
-	        }
-	    };
-
-	    console.log(data);
-
-	    data = JSON.stringify(data); //Convert to actual Json
-
-
-        xhr.open('POST', API_BEAT, true);
-
-        xhr.setRequestHeader("Content-type", "application/json");
-
-        xhr.timeout = 2000;
-
-        xhr.onload = () => {
-            if (xhr.status === 200) {
-                // We can resolve the promise
-                //console.log(xhr.response);
-                resolve(xhr.response);
-            } else {
-                // It's a failure, so let's reject the promise
-                reject(xhr);
-            }
-        
         }
+       };
 
-        xhr.onerror = () => {
-            // It's a failure, so let's reject the promise
-            reject("Unable to load RSS");
-        };
+      //console.log(data);
 
-        try{
-          xhr.send(data);
-        }catch(e){
-          //console.log(error);
-        }
+      data = JSON.stringify(data); //Convert to actual Json
+
+
+      xhr.open('POST', API_BEAT, true);
+
+      xhr.setRequestHeader("Content-type", "application/json");
+
+      xhr.timeout = 2000;
+
+      xhr.onload = () => {
+          if (xhr.status === 200) {
+              // We can resolve the promise
+              //console.log(xhr.response);
+              resolve(xhr.response);
+          } else {
+              // It's a failure, so let's reject the promise
+              reject(xhr);
+          }
+
+      }
+
+      xhr.onerror = () => {
+          // It's a failure, so let's reject the promise
+          reject("Unable to load RSS");
+      };
+
+      try{
+        xhr.send(data);
+      }catch(e){
+        //console.log(error);
+      }
     });
 }
 
 function beatDebug(beat){
+
+    if(!DEBUG){
+      return;
+    }
 
     // Promises require two functions: one for success, one for failure
     if(beat['url'].contains("chrome://")){
@@ -713,7 +728,6 @@ function beatDebug(beat){
           'url': beat['url'],
           'title': beat['title'],
           'time': beat['timestamp']
-
       }
     };
 
@@ -722,7 +736,7 @@ function beatDebug(beat){
       data.token = DEBUG.token;
     }
 
-    //console.log(data);
+    console.log(data);
 
     data = JSON.stringify(data); //Convert to actual Json
 
@@ -838,7 +852,7 @@ function loginRequest(data){
 
               let response = JSON.parse(xhr.response);
 
-              console.log(response);
+              //console.log(response);
       				if(!response.error){
 
       					setStorage("sync", response).then(() => {
