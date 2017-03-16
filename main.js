@@ -1,11 +1,3 @@
-let DEBUG = {
-  bool: false,
-  sync: "http://localhost:3030/v1/sync",
-  auth: "http://localhost:3030/v1/auth",
-  beat: "http://localhost:3030/v1/logs",
-  token: "",
-};
-
 let ICOGNITO = chrome.extension.inIncognitoContext;
 let IGNORE_NOTIFICATIONS = false;
 
@@ -33,6 +25,8 @@ let BROWSER = undefined;
 //sync credentials and user details
 let sync = undefined;
 let user = undefined;
+let DEBUG = undefined;
+let goDebug = false;
 
 //test data - workable hours and days
 let today = new Date().getDay();
@@ -69,8 +63,21 @@ else {
 
 
 function debug(pin){
-  if(pin == "123")
-    chrome.tabs.create({ url: chrome.extension.getURL("debug/debug.html") });
+  if(pin === 123 || pin === "123"){
+    goDebug = true;
+    chrome.runtime.openOptionsPage();
+  }else if(pin === "setup"){
+    let obj = {
+      bool: false,
+      sync: "http://localhost:3030/v1/sync",
+      auth: "http://localhost:3030/v1/auth",
+      beat: "http://localhost:3030/v1/logs",
+      token: "",
+    };
+    chrome.storage.local.set({'debug': obj}, function() { console.log("Debug mode has been setup.")});
+  }else{
+    return;
+  }
 }
 
 //#################################### GOOGLE DOCS ####################################
@@ -197,6 +204,14 @@ function init(){
 
   status();
 
+  //chrome.storage.local.remove("debug", function(){});
+  //setup debug
+  chrome.storage.local.get("debug", function(items){
+    if(items.debug){
+      DEBUG = items.debug;
+    }
+  });//END DEBUG SETUP
+
 }//END INIT()
 
 init();
@@ -214,6 +229,9 @@ function status(){
       });
   } else {
       tabs.injectAll();
+      chrome.browserAction.setBadgeText({
+          text: " "
+      });
       if(PRIVATE){
         chrome.browserAction.setBadgeBackgroundColor({
           color: "#ffd640"
@@ -223,9 +241,18 @@ function status(){
           color: "#009933"
         });
       }
-      chrome.browserAction.setBadgeText({
-          text: " "
-      });
+
+      if(DEBUG && DEBUG.bool){
+        chrome.notifications.create({
+            "type": "basic",
+            "iconUrl": chrome.extension.getURL("img/icon_debug.png"),
+            "title": "Debug Mode Enabled",
+            "message": "Welcome to debugger mode."
+        });
+        chrome.browserAction.setBadgeText({
+            text: "Debug"
+        });
+      }
   }
 }
 
@@ -327,6 +354,72 @@ chrome.runtime.onConnect.addListener(function (port) {
             //console.log("Last Panel window closing.");
           }
       });
+    }else if(port.name === "debug"){
+      port.onMessage.addListener(function(request, sender){
+        if(request.action === "debug"){
+          // Save it using the Chrome extension storage API.
+            // Notify that we saved.
+            chrome.storage.local.get("debug", function(items){
+              items.debug.bool = request.status;
+              chrome.storage.local.set({'debug': items.debug}, function() {});
+            });
+        }else if(request.action === "data"){
+          // Save it using the Chrome extension storage API.
+            // Notify that we saved.
+            chrome.storage.local.get("debug", function(items){
+              port.postMessage({action: "data", data: items.debug});
+              goDebug = false;
+            });
+        }else if(request.action === "auth"){
+          // Save it using the Chrome extension storage API.
+            // Notify that we saved.
+            chrome.storage.local.get("debug", function(items){
+              items.debug.auth = request.val;
+              chrome.storage.local.set({'debug': items.debug}, function() {});
+            });
+        }else if(request.action === "sync"){
+          // Save it using the Chrome extension storage API.
+            // Notify that we saved.
+            chrome.storage.local.get("debug", function(items){
+              items.debug.sync = request.val;
+              chrome.storage.local.set({'debug': items.debug}, function() {});
+            });
+        }else if(request.action === "beat"){
+          // Save it using the Chrome extension storage API.
+            // Notify that we saved.
+            chrome.storage.local.get("debug", function(items){
+              items.debug.beat = request.val;
+              chrome.storage.local.set({'debug': items.debug}, function() {});
+            });
+        }else if(request.action === "token"){
+          // Save it using the Chrome extension storage API.
+            // Notify that we saved.
+            chrome.storage.local.get("debug", function(items){
+              items.debug.token = request.val;
+              chrome.storage.local.set({'debug': items.debug}, function() {});
+            });
+        }else if(request.action === "reset"){
+          // Save it using the Chrome extension storage API.
+            // Notify that we saved.
+            let obj = {
+              bool: false,
+              sync: "http://localhost:3030/v1/sync",
+              auth: "http://localhost:3030/v1/auth",
+              beat: "http://localhost:3030/v1/logs",
+              token: "",
+            };
+
+            chrome.storage.local.set({'debug': obj}, function() {});
+        }
+      });// END DEBUG LISTENER
+    }else if(port.name === "options"){
+      port.onMessage.addListener(function(request, sender){
+        if(request.action === "data"){
+          port.postMessage({action: "data", data: {name: user.name, company: user.company, token: user.token } });
+        }else if(request.action === "check"){
+          port.postMessage({action: "check", debugMode: goDebug});
+        }
+      });// END options LISTENER
     }
 });
 
@@ -828,10 +921,14 @@ chrome.storage.onChanged.addListener(function(changes, namespace) {
 
       //console.log(storageChange.newValue);
 
-      if(key === "sync")
+      if(key === "sync"){
   			sync = storageChange.newValue;
-  		else if(key === "user")
+      }else if(key === "user"){
   			user = storageChange.newValue;
+      }else if(key === "debug"){
+        DEBUG = storageChange.newValue;
+        status();
+      }
     }
 });
 
