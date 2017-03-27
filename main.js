@@ -1,3 +1,14 @@
+/*
+
+  TODO:
+
+  1. if no internet connection check every 30sec's until the internet comes one / sync
+  2.  
+
+*/
+
+
+
 let ICOGNITO = chrome.extension.inIncognitoContext;
 let IGNORE_NOTIFICATIONS = false;
 
@@ -11,9 +22,13 @@ let AUTH_STATE = {
 let CONNECTION_ERROR = false;
 
 //API endpoints
-const API_SYNC = "https://api.opz.io/v1/sync";
+/*const API_SYNC = "https://api.opz.io/v1/sync";
 const API_AUTH = "https://api.opz.io/v1/auth";
-const API_BEAT = "https://api.opz.io/v1/logs";
+const API_BEAT = "https://api.opz.io/v1/logs";*/
+
+const API_SYNC = "http://localhost:3030/v1/sync";
+const API_AUTH = "http://localhost:3030/v1/auth";
+const API_BEAT = "http://localhost:3030/v1/logs";
 
 
 let TRACKING = false;
@@ -67,6 +82,22 @@ navigator.browserSpecs = (function(){
 else {
     // Do something for all other browsers.
 }*/
+
+function test(){
+  $.ajax({
+      url: "http://localhost:3030/v1/test",
+      dataType: 'json',
+      success: (data) => {
+
+          console.log(data.data)
+
+      },
+      error: (xhr, status, err) => {
+
+          console.log(status);
+      }
+  });
+}
 
 
 function debug(pin){
@@ -672,7 +703,7 @@ function beatRequest(beat){
       //console.log(data);
 
       data = JSON.stringify(data); //Convert to actual Json
-
+      
 
       xhr.open('POST', API_BEAT, true);
 

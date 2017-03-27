@@ -28,7 +28,7 @@
 
   "background": {
     "persistent": true,
-    "scripts": ["main.js"]
+    "scripts": ["config.js", "./scripts/jquery.min.js", "./scripts/oauth.js", "./scripts/opz.js","main.js"]
   },
 
   "content_scripts": [

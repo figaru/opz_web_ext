@@ -80,7 +80,6 @@ function timer(){
 
 
 
-
 function getTimestamp(){
 	return new Date().getTime();
 }
