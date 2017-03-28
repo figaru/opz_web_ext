@@ -116,6 +116,15 @@
       return data;
   }
 
+  function clear(){
+    window.localstorage.clear();
+  }
+
+  function reset(){
+    window.localstorage.removeItem("sync");
+    window.localstorage.removeItem("user_details");
+  }
+
   //set local storage
   function set(key, data){
     if(config.local_storage){
@@ -139,10 +148,12 @@
 
 
   //##################################### REQUESTS #############################################
-  //GENERATE UNIQUE KEY
-  OPZ.prototype.heartbeat = function(promise) {
+  //send heartbeat
+  OPZ.prototype.heartbeat = function(data, promise) {
+    //data as object
     $.post({
-      url: this.defaults.api_generic + "/unique",
+      url: this.defaults.api_beat,
+      data: data,
       success: (res) => {
         if(validResponse(res.statusCode, res.data)){
             set('app_id', res.data.app_id);
@@ -197,9 +208,11 @@
   OPZ.prototype.sync = function(promise) {
     var sync = get('sync');
     var app_id = get('app_id');
-    if(typeof sync !== "object" || !sync.auth_token || !sync.user_id || !app_id)
-      return promise('Authentication required before synchronization', null);
 
+    if(typeof sync !== "object" || !sync.auth_token || !sync.user_id || !app_id)
+      return callback('Authentication required before synchronization', null);
+
+    //console.log(sync.auth_token);
     $.get({
       url: this.defaults.api_sync,
       headers: {
@@ -212,6 +225,7 @@
           set('user_details', res.data);
           //config.user_details = get('user_details');
           //success callback
+          console.log(res);
           callback(null, {code: res.statusCode, status: res.status, data: res.data}, promise);
         }else{
           //error callback
@@ -220,6 +234,34 @@
       },
       error: (xhr, status, err) => {
         callback("An error occured. Server not responding.", null, promise);
+      }
+    });
+  }
+
+  //GENERATE UNIQUE KEY
+  OPZ.prototype.logout = function(promise) {
+    var sync = get('sync');
+    var app_id = get('app_id');
+
+    $.get({
+      url: this.defaults.api_generic + "/logout",
+      headers: {
+        "x-auth-token": sync.auth_token,
+        "x-user-id": sync.user_id,
+        "x-app-id": app_id
+      },
+      success: (res) => {
+        if(validResponse(res.statusCode, res.data)){
+            reset();
+            //success callback
+            callback(null, {code: res.statusCode, status: res.status, data: res.data}, promise);
+        }else{
+          //error callback
+          callback({code: res.statusCode, status: res.status, reason: res.reason}, null, promise);
+        }
+      },
+      error: (xhr, status, err) => {
+        callback("An error occured. Server not responding.", null);
       }
     });
   }
