@@ -85,11 +85,13 @@ else {
 }*/
 
 $(function(){
+  console.log("STARTING OPZIO BROWSER PLUGIN");
 
   //init opz plugin
   opz = new OPZ();
 
-  opz.init();
+  //init
+  init();
 
 });
 
@@ -191,49 +193,36 @@ function init(){
 
   })
 
-  //get necessary api sync data if exists.
-  chrome.storage.local.get("sync", function(items){
-    if(items.sync){
-
-      LOGIN_REQUIRED = false;
-
-      sync = items.sync;
-
-      syncRequest().then(syncResponse =>{
-        //if loggin not required -> sync data
-        if(!LOGIN_REQUIRED)
-          chrome.storage.local.get("user", function(items){
-            if(items.user){
-              SYNC_REQUIRED = false;
-
-              user = items.user;
-
-              if(user['workableWeekDays'].indexOf(today) >= 0 && user['workableHours'].indexOf(now) >= 0){
-                //console.log("START TRACKING");
-                TRACKING = true;
-                status();
-                chrome.notifications.create({
-                    "type": "basic",
-                    "iconUrl": chrome.extension.getURL("img/icon_main.png"),
-                    "title": "Opzio Tracking Enabled",
-                    "message": "You are currently tracking your workable times."
-                });
-              }
-
-            }else{
-              //no user details -> sync failed
-            }
-          });     
-      }).catch(error => {
-        //console.log(error);
+  opz.authRequired(function(required){
+    if(!required){
+      //sync with server
+      opz.sync(function(err, data){
+        if(err){ console.log(err); } //error failed to sync
+        else{ 
+          var settings = data.data;
+          //data = user settings and data
+          //check if data time is within users workable times
+          if(settings['workableWeekDays'].indexOf(today) >= 0 && settings['workableHours'].indexOf(now) >= 0){
+            //console.log("START TRACKING");
+            opz.tracking = true;
+            chrome.notifications.create({
+                "type": "basic",
+                "iconUrl": chrome.extension.getURL("img/icon_main.png"),
+                "title": "Opzio Tracking Enabled",
+                "message": "You are currently tracking your workable times."
+            });
+          }else{
+            //dont start tracking
+          }
+        }
       });
-
     }else{
-      //login required -> do nothing but wait
+      //login required -> do nothing
     }
   });
 
   status();
+
 
   //chrome.storage.local.remove("debug", function(){});
   //setup debug
@@ -245,12 +234,11 @@ function init(){
 
 }//END INIT()
 
-init();
 
 
 //STATUS update - updating browser action on track or private
 function status(){
-  if (!TRACKING) {
+  if (!opz.tracking) {
       //tabs.removeUpdateListener();
       chrome.browserAction.setBadgeBackgroundColor({
           color: "#CC0000"
@@ -263,7 +251,7 @@ function status(){
       chrome.browserAction.setBadgeText({
           text: " "
       });
-      if(PRIVATE){
+      if(opz.private){
         chrome.browserAction.setBadgeBackgroundColor({
           color: "#ffd640"
         });
@@ -290,100 +278,80 @@ function status(){
 //##################################### RUNTIME MESSAGES ####################################	
 
 //----------------------------------- PANEL MESSAGING ------------------------------------
-var openCount = 0;
 chrome.runtime.onConnect.addListener(function (port) {
     if (port.name == "panel") {
-      if (openCount == 0) {
-
-        //console.log("panel opening");
-        if(CONNECTION_ERROR){
-        	//console.log("Connection error");
-        	port.postMessage({action: "error", msg: AUTH_STATE['message'] });
-        	return;
-        }
-
-        if(LOGIN_REQUIRED){
-           	port.postMessage({action: "login"});
-        }else{
-        	port.postMessage({action: "main", data: user});
-        }
-
+      //console.log("panel opening");
+      if(CONNECTION_ERROR){
+      	//console.log("Connection error");
+      	port.postMessage({action: "error", msg: AUTH_STATE['message'] });
+      	return;
       }
-      openCount++;
+
+      //when panel open -> check if login required
+      opz.authRequired(function(required){
+        if(required){
+          port.postMessage({action: "login"});
+        }else{
+          opz.get('user_details', function(data){
+            port.postMessage({action: "main", data: data});
+          });
+          //port.postMessage({action: "main", data: user});
+        }
+      });
 
       port.onMessage.addListener(function(request, sender){
       	if(request.action === "auth"){
-      		let data = JSON.stringify({
+      		let data = {
 	        	user: request.cred.user,
 	        	pass: request.cred.pass
-	        });
+	        };
 
-	        loginRequest(data).then(response => {
-	        	if(!LOGIN_REQUIRED)
-        			port.postMessage({action: "main"});
-	        }).catch(error => {
-		        port.postMessage({action: "error", msg: AUTH_STATE['message'] });
-	        });
+          opz.auth(data, function(err, data){
+            if(err){
+              port.postMessage({action: "error", msg: err.reason });
+            }else{
+              port.postMessage({action: "main"});
+            }
+          });
+
       	}else if(request.action === "data"){
 
-      		if(SYNC_REQUIRED){
-      			syncRequest().then(syncResponse =>{
-  					//if loggin not required -> sync data
-              if(!LOGIN_REQUIRED){
-
-                if(!user){
-                  chrome.storage.local.get("user", function(items){
-                    if(items.user){
-
-                      SYNC_REQUIRED = false;
-
-                      user = items.user;
-
-                      port.postMessage({action: "data", data: user, tracking: TRACKING, private: PRIVATE});
-                    }else{
-
-                    }
-                  });
-                }else{
-                  port.postMessage({action: "data", data: user, tracking: TRACKING, private: PRIVATE});
+          opz.syncRequired(function(required){
+            if(required){
+              opz.sync(function(err, data){
+                if(err){ console.log(err); }
+                else{
+                  port.postMessage({action: "data", data: data.data, tracking: opz.tracking, private: opz.private});
                 }
-              }
-
-    				}).catch(error => {
-    					//console.log(error);
-    				});
-      		}else{
-      			port.postMessage({action: "data", data: user, tracking: TRACKING, private: PRIVATE});
-      		}
+              }); 
+            }else{
+              opz.get('user_details', function(data){
+                port.postMessage({action: "data", data: data, tracking: opz.tracking, private: opz.private});
+              });
+            }
+          });
 
       	}else if(request.action === "tracking"){
-      		TRACKING = request.status;
-          port.postMessage({action: "data", data: user, tracking: TRACKING, private: PRIVATE});
+      		opz.tracking = request.status;
+          opz.get('user_details', function(data){
+            port.postMessage({action: "data", data: data, tracking: opz.tracking, private: opz.private});
+          });
 
-          if(!TRACKING)
-            PRIVATE = false;
+          if(!opz.tracking)
+            opz.private = false;
 
-          status();
       	}else if(request.action === "private"){
-          PRIVATE = request.status;
-          status();
+          opz.private = request.status;
         }else if(request.action === "disconnect"){
-      		LOGIN_REQUIRED = true;
-      		SYNC_REQUIRED = true;
-          TRACKING = false;
-          PRIVATE = false;
-      		chrome.storage.local.remove(["sync"]);
+      		opz.logout(function(err, data){
+            if(err){
+              console.log(err);
+            }else{
+              console.log(data);
+            }
+          });
       		port.postMessage({action: "login"});
-          status();
       	}
-
-      });
-
-      port.onDisconnect.addListener(function(port) {
-          openCount--;
-          if (openCount == 0) {
-            //console.log("Last Panel window closing.");
-          }
       });
     }else if(port.name === "debug"){
       port.onMessage.addListener(function(request, sender){
@@ -446,12 +414,19 @@ chrome.runtime.onConnect.addListener(function (port) {
     }else if(port.name === "options"){
       port.onMessage.addListener(function(request, sender){
         if(request.action === "data"){
-            port.postMessage({action: "data", data: {name: user.name, company: user.company, token: user.token } });
+          opz.get('user_details', function(err, data){
+            if(err){
+              console.log(err);
+            }
+            port.postMessage({action: "data", data: {name: data.name, company: data.company, token: data.token } });
+          });
         }else if(request.action === "check"){
           port.postMessage({action: "check", debugMode: goDebug});
         }
       });// END options LISTENER
     }
+
+    status();
 });
 
 
@@ -490,7 +465,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
 function beat(tab){
   chrome.windows.get(tab.windowId, function(info){
     if(info.focused){
-      if(TRACKING && !LOGIN_REQUIRED && !ICOGNITO && tab.active && tab.selected){
+      if(opz.tracking && tab.active && tab.selected){
         //console.log("send beat");
         let beat = {};
         let tabDomain = tab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
@@ -530,7 +505,7 @@ class Tabs {
     chrome.tabs.onActivated.addListener(function(activeInfo) {
         //console.log( this.getTab(activeInfo.tabId) );
 
-        if(!TRACKING){
+        if(!opz.tracking){
           //console.log("returning");
           return;
         }
@@ -545,7 +520,7 @@ class Tabs {
           if(tab.url.indexOf("chrome://") >= 0 || tab.url.indexOf("chrome-extension://") >= 0){
               //console.log("ignore");
           }else{
-            if(TRACKING && !LOGIN_REQUIRED && !ICOGNITO){
+            if(opz.tracking){
               //console.log("send beat");
               let beat = {};
               let tabDomain = tab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
@@ -557,7 +532,7 @@ class Tabs {
               beat.url = tabUrl;
               beat.timestamp = Math.floor((new Date).getTime() / 1000);
 
-              //console.log(beat);
+              console.log(beat);
 
               beatRequest(beat);
 
@@ -573,7 +548,7 @@ class Tabs {
     chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 
         //console.log(tab);
-        if(!TRACKING || tab.incognito){
+        if(!opz.tracking|| tab.incognito){
           //console.log("returning");
           return;
         }
@@ -616,7 +591,7 @@ class Tabs {
     //console.log("injecting all");
 
     //verify - Tracking enabled
-    if(!TRACKING){
+    if(!opz.tracking){
       return;
     }
 
@@ -681,21 +656,25 @@ function beatRequest(beat){
 
 
       var data = {
-        'token': user['token'],
-        'data': {
-            'enforcePrivate': PRIVATE,
-            'browser': BROWSER['name'],
-            'domain': beat['domain'],
-            'url': beat['url'],
-            'title': beat['title'],
-            'time': beat['timestamp']
-
-        }
+        'enforcePrivate': opz.private,
+        'browser': BROWSER['name'],
+        'domain': beat['domain'],
+        'url': beat['url'],
+        'title': beat['title'],
+        'time': beat['timestamp']
        };
 
       //console.log(data);
 
-      data = JSON.stringify(data); //Convert to actual Json
+      opz.heartbeat(data, function(err, data){
+        if(err){
+          console.log(err);
+        }else{
+          console.log(data);
+        }
+      });
+
+      /*data = JSON.stringify(data); //Convert to actual Json
       
 
       xhr.open('POST', API_BEAT, true);
@@ -725,7 +704,7 @@ function beatRequest(beat){
         xhr.send(data);
       }catch(e){
         //console.log(error);
-      }
+      }*/
     });
 }
 
@@ -990,7 +969,7 @@ function alarmSync(){
 function handleAlarm(alarmInfo) {
   if(alarmInfo.name === "reminder-alarm"){
     //console.log("reminder");
-    if(TRACKING && !ICOGNITO){
+    if(opz.tracking){
       if(user['workableWeekDays'].indexOf(today) < 0 || user['workableHours'].indexOf(now) < 0 && !IGNORE_NOTIFICATIONS){
         chrome.notifications.create({
             "type": "basic",

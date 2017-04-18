@@ -14,7 +14,7 @@ chrome.runtime.onInstalled.addListener(function(details){
 
 var opz = undefined;
 
-$(function(){
+/*$(function(){
 
 	opz = new OPZ();
 
@@ -22,7 +22,7 @@ $(function(){
 
 	//chrome.storage.local.set({appId: ""});
 
-/*	//####################### TASK 1 SYSTEM START ############################
+	//####################### TASK 1 SYSTEM START ############################
 	//check if the plugin contains a generated unique app id from server
 	//request one if not -> if failed -> generate a personal one
 	chrome.storage.local.set({appId: ""});
@@ -41,9 +41,9 @@ $(function(){
 	    		}
 	    	});
 	    }
-	});*/
+	});
 
-});
+});*/
 
 
 

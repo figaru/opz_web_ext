@@ -10,7 +10,7 @@ config = {
     // no activity in the browser for x seconds
     detectionIntervalInSeconds: 60,
     //tracking state
-    TRACKING: false,
+    tracking: false,
     //synchronize user settings and data
     apiSync: "http://localhost:3030/app/sync",
     //authenticate user
